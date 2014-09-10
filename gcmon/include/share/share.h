@@ -24,9 +24,6 @@
 //! 标记公有接口，对外提供
 #define GPublic extern
 
-//! 记录调试信息
-GPublic FILE *gFile;
-
 //! 打开gFile
 GPublic void gcmon_debug_fopen();
 

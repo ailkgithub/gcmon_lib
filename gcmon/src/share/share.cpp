@@ -11,7 +11,7 @@
 #include <stdarg.h>
 
 //! 记录调试信息
-GPublic FILE *gFile = NULL;
+GPrivate FILE *gFile = NULL;
 
 //! 打开gFile
 GPublic void gcmon_debug_fopen()
