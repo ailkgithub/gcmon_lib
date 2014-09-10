@@ -1239,6 +1239,7 @@ ERROR:
 }
 
 //! 另一种删除节点的方式
+/*!
 GPrivate RBTreeP_t rbtree_delete_node_back(RBTreeP_t pTree, RBNodeP_t pNode)
 {
     RBNodeP_t pTarget = NULL;
@@ -1344,6 +1345,7 @@ GPrivate RBTreeP_t rbtree_delete_node_back(RBTreeP_t pTree, RBNodeP_t pNode)
 ERROR:
     return pTree;
 }
+*/
 
 /*!
 *@brief        将pData插入红黑树
