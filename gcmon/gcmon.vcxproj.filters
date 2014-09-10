@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="gcmon">
+      <UniqueIdentifier>{1ed127f0-119e-43c9-b22f-5326a7770780}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="rbtree">
+      <UniqueIdentifier>{098e0e52-4eca-45b9-8681-60b83a1b9847}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="share">
+      <UniqueIdentifier>{646960a7-dcfc-4b19-ae0f-db02111aa996}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\rbtree\rbtree.cpp">
+      <Filter>rbtree</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gcmon\gcmon.cpp">
+      <Filter>gcmon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\share\share.cpp">
+      <Filter>share</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\rbtree\rbtree.h">
+      <Filter>rbtree</Filter>
+    </ClInclude>
+    <ClInclude Include="include\share\type.h">
+      <Filter>share</Filter>
+    </ClInclude>
+    <ClInclude Include="include\share\share.h">
+      <Filter>share</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
