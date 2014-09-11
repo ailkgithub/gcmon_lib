@@ -10,6 +10,9 @@
     <Filter Include="share">
       <UniqueIdentifier>{646960a7-dcfc-4b19-ae0f-db02111aa996}</UniqueIdentifier>
     </Filter>
+    <Filter Include="perf">
+      <UniqueIdentifier>{cc4e51c7-9314-4128-b9b9-e9851cd0fd07}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\rbtree\rbtree.cpp">
@@ -21,6 +24,9 @@
     <ClCompile Include="src\share\share.cpp">
       <Filter>share</Filter>
     </ClCompile>
+    <ClCompile Include="src\perf\perf.cpp">
+      <Filter>perf</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\rbtree\rbtree.h">
@@ -31,6 +37,9 @@
     </ClInclude>
     <ClInclude Include="include\share\share.h">
       <Filter>share</Filter>
+    </ClInclude>
+    <ClInclude Include="include\perf\perf.h">
+      <Filter>perf</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

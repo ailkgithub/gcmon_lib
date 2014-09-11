@@ -10,7 +10,6 @@
 #ifndef _rbtree_h__
 #define _rbtree_h__
 
-#include "share/type.h"
 #include "share/share.h"
 
 //! 红黑树可以存储任意数据类型
