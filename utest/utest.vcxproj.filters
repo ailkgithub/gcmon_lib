@@ -12,13 +12,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\main\main.cpp">
+    <ClCompile Include="src\main\main.c">
       <Filter>main</Filter>
     </ClCompile>
-    <ClCompile Include="src\rbtree\urbtree.cpp">
+    <ClCompile Include="src\rbtree\urbtree.c">
       <Filter>rbtree</Filter>
     </ClCompile>
-    <ClCompile Include="src\utest.cpp">
+    <ClCompile Include="src\utest.c">
       <Filter>utest</Filter>
     </ClCompile>
   </ItemGroup>

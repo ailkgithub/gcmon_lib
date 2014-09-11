@@ -15,17 +15,17 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\rbtree\rbtree.cpp">
-      <Filter>rbtree</Filter>
-    </ClCompile>
-    <ClCompile Include="src\gcmon\gcmon.cpp">
+    <ClCompile Include="src\gcmon\gcmon.c">
       <Filter>gcmon</Filter>
     </ClCompile>
-    <ClCompile Include="src\share\share.cpp">
-      <Filter>share</Filter>
-    </ClCompile>
-    <ClCompile Include="src\perf\perf.cpp">
+    <ClCompile Include="src\perf\perf.c">
       <Filter>perf</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rbtree\rbtree.c">
+      <Filter>rbtree</Filter>
+    </ClCompile>
+    <ClCompile Include="src\share\share.c">
+      <Filter>share</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
