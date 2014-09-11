@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="main">
+      <UniqueIdentifier>{f0e251f1-b0d4-49db-ac44-526583acfe13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utest">
+      <UniqueIdentifier>{c7de740e-c1d6-4d6c-9120-2dc53c573c7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="rbtree">
+      <UniqueIdentifier>{de8b6397-7ba4-48e5-a01b-0ddcf97d051d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main\main.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rbtree\urbtree.cpp">
+      <Filter>rbtree</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utest.cpp">
+      <Filter>utest</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\utest.h">
+      <Filter>utest</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
