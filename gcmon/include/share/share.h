@@ -32,6 +32,9 @@ GPublic void gcmon_debug_fopen();
 //! 关闭gFile
 GPublic void gcmon_debug_fclose();
 
+//! flush文件缓存
+GPublic void gcmon_debug_flush();
+
 //! 打印调试信息
 GPublic int gcmon_debug_msg(const char *fmt, ...);
 

@@ -9,3 +9,5 @@
 *.exe
 *.ilk
 *.suo
+*.dll
+*.exp

@@ -36,6 +36,19 @@ GPublic void gcmon_debug_fclose()
     }
 }
 
+//! flush文件缓存
+GPublic void gcmon_debug_flush()
+{
+    if (gFile != NULL)
+    {
+        fflush(gFile);
+    }
+    else
+    {
+        fflush(stdout);
+    }
+}
+
  /*!
  *@brief        打印gcmon运行过程中的调试信息
  *@author       zhaohm3
