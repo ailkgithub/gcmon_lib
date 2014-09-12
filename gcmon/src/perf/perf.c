@@ -110,3 +110,31 @@ const CharP_t gTtype2name[T_CONFLICT + 1] = {
     "*conflict*"
 };
 
+GPrivate Int32_t gCounter = 0;
+
+GPublic void perf_memory_analyze(void *address)
+{
+    PerfDataPrologueP_t pPerf = (PerfDataPrologueP_t)address;
+
+    if (pPerf != NULL)
+    {
+        Int32_t i = 0;
+        CharP_t pCurr = (CharP_t)(((CharP_t)(address)) + sizeof(PerfDataPrologue_t));
+
+        for (i = 0; i < pPerf->num_entries; i++)
+        {
+            PerfDataEntryP_t pEntry = (PerfDataEntryP_t)pCurr;
+            String_t szEntryName = (String_t)(pCurr + pEntry->name_offset);
+
+            if (0 == gCounter)
+            {
+                gcmon_debug_msg("%s \n", szEntryName);
+            }
+
+            pCurr += pEntry->entry_length;
+        }
+
+        gCounter = 1;
+        gcmon_debug_flush();
+    }
+}

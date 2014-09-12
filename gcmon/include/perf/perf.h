@@ -19,4 +19,6 @@ typedef enum tagVariability Variability_t, *VariabilityP_t;
 typedef enum tagUnits Units_t, *UnitsP_t;
 typedef enum tagFlags Flags_t, *FlagsP_t;
 
+GPublic void perf_memory_analyze(void *address);
+
 #endif

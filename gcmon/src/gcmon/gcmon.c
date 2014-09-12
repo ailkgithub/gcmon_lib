@@ -1,5 +1,6 @@
 
 #include "share/share.h"
+#include "perf/perf.h"
 
 GPrivate jvmtiEnv *gpEnv = NULL;
 GPrivate jvmtiEnv gEnv = NULL;
@@ -35,7 +36,8 @@ GPrivate void RawMonitorExit()
 
 GPrivate void JNICALL StartGarbageCollection(jvmtiEnv *jvmti_env)
 {
-  printf("%s\n", __FUNCTION__);
+    printf("%s\n", __FUNCTION__);
+    perf_memory_analyze(gPerfMemory);
 }
 
 GPrivate void JNICALL FinishGarbageCollection(jvmtiEnv *jvmti_env)
