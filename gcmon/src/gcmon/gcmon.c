@@ -1,18 +1,38 @@
+/*!**************************************************************
+ *@file gcmon.c
+ *@brief    Java Virtual Machine Tool Interfaces
+ *@author   zhaohm3
+ *@date 2014-9-15 17:53
+ *@note
+ * 
+ ****************************************************************/
 
 #include "share/share.h"
 #include "perf/perf.h"
 
-GPrivate jvmtiEnv *gpEnv = NULL;
-GPrivate jvmtiEnv gEnv = NULL;
+
+GPrivate jvmtiEnv *gpJvmtiEnv = NULL;                   
+GPrivate jvmtiEnv gJvmtiEnv = NULL;
 GPrivate jvmtiCapabilities gCapabilities = { 0 };
 GPrivate jvmtiEventCallbacks gCallbacks = { 0 };
 GPrivate jrawMonitorID gMonitorID = NULL;
-GPrivate jvmtiError gError = JVMTI_ERROR_NONE;
 
-typedef jobject(JNICALL *Perf_Attach_t)(JNIEnv *env, jobject unused, jstring user, int vmid, int mode);
+typedef jobject(JNICALL *Perf_Attach_t)(JNIEnv *, jobject, jstring, int, int);
 GPrivate Perf_Attach_t gfnPerf_Attach = NULL;
 GPrivate void *gPerfMemory = NULL;
 
+/*!
+*@brief        获取JVM共享的PerfMemory地址
+*@author       zhaohm3
+*@param[in]    jvmti_env
+*@param[in]    jni_env
+*@retval
+*@note
+* 
+*@since    2014-9-15 17:54
+*@attention
+* 
+*/
 GPrivate void GetPerfMemoryAddress(jvmtiEnv *jvmti_env, JNIEnv* jni_env)
 {
     if (gfnPerf_Attach != NULL && NULL == gPerfMemory)
@@ -23,44 +43,141 @@ GPrivate void GetPerfMemoryAddress(jvmtiEnv *jvmti_env, JNIEnv* jni_env)
     }
 }
 
-GPrivate void RawMonitorEnter()
+/*!
+*@brief        多线程环境，进入临界区
+*@author       zhaohm3
+*@retval
+*@note
+* 
+*@since    2014-9-15 17:55
+*@attention
+* 
+*/
+GPrivate jvmtiError RawMonitorEnter()
 {
-    gError = (*gpEnv)->RawMonitorEnter(gpEnv, gMonitorID);
+    return gJvmtiEnv->RawMonitorEnter(gpJvmtiEnv, gMonitorID);
 }
 
-GPrivate void RawMonitorExit()
+/*!
+*@brief        多线程环境，离开临界区
+*@author       zhaohm3
+*@retval
+*@note
+* 
+*@since    2014-9-15 17:55
+*@attention
+* 
+*/
+GPrivate jvmtiError RawMonitorExit()
 {
-    gError = (*gpEnv)->RawMonitorExit(gpEnv, gMonitorID);
+    return gJvmtiEnv->RawMonitorExit(gpJvmtiEnv, gMonitorID);
 }
 
+/*!
+*@brief        VMInit接口回调函数
+*@author       zhaohm3
+*@param[in]    jvmti_env
+*@param[in]    jni_env
+*@param[in]    thread
+*@retval
+*@note
+* 
+*@since    2014-9-15 17:57
+*@attention
+* 
+*/
+GPrivate void JNICALL InitVM(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthread thread)
+{
+    GCMON_PRINT_FUNC();
+}
 
+/*!
+*@brief        VMStart接口回调函数
+*@author       zhaohm3
+*@param[in]    jvmti_env
+*@param[in]    jni_env
+*@retval
+*@note
+* 
+*@since    2014-9-15 17:57
+*@attention
+* 
+*/
+GPrivate void JNICALL StartVM(jvmtiEnv *jvmti_env, JNIEnv* jni_env)
+{
+    GCMON_PRINT_FUNC();
+}
+
+/*!
+*@brief        MethodEntry接口回调函数
+*@author       zhaohm3
+*@param[in]    jvmti_env
+*@param[in]    jni_env
+*@param[in]    thread
+*@param[in]    method
+*@retval
+*@note
+* 
+*@since    2014-9-15 17:58
+*@attention
+* 
+*/
+GPrivate void JNICALL EntryMethod(jvmtiEnv *jvmti_env, JNIEnv* jni_env,
+    jthread thread, jmethodID method)
+{
+    /*GCMON_PRINT_FUNC();*/
+}
+
+/*!
+*@brief        GarbageCollectionStart接口回调函数
+*@author       zhaohm3
+*@param[in]    jvmti_env
+*@retval
+*@note
+* 
+*@since    2014-9-15 17:58
+*@attention
+* 
+*/
 GPrivate void JNICALL StartGarbageCollection(jvmtiEnv *jvmti_env)
 {
-    printf("%s\n", __FUNCTION__);
+    GCMON_PRINT_FUNC();
     perf_memory_analyze(gPerfMemory);
 }
 
+/*!
+*@brief        FinishGarbageCollection接口回调函数
+*@author       zhaohm3
+*@param[in]    jvmti_env
+*@retval
+*@note
+* 
+*@since    2014-9-15 17:59
+*@attention
+* 
+*/
 GPrivate void JNICALL FinishGarbageCollection(jvmtiEnv *jvmti_env)
 {
-    printf("%s\n", __FUNCTION__);
+    GCMON_PRINT_FUNC();
+    perf_memory_analyze(gPerfMemory);
 }
 
-GPrivate void JNICALL EntryMethod(jvmtiEnv *jvmti_env, JNIEnv* jni_env,
-                                  jthread thread, jmethodID method)
-{
-    printf("%s\n", __FUNCTION__);
-}
-
-GPrivate void JNICALL InitVM(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthread thread)
-{
-    printf("%s\n", __FUNCTION__);
-}
-
-GPrivate void JNICALL StartVM(jvmtiEnv *jvmti_env, JNIEnv* jni_env)
-{
-    printf("%s\n", __FUNCTION__);
-}
-
+/*!
+*@brief        NativeMethodBind接口回调函数
+*@author       zhaohm3
+*@param[in]    jvmti_env
+*@param[in]    jni_env
+*@param[in]    thread
+*@param[in]    method
+*@param[in]    address
+*@param[in]    new_address_ptr
+*@retval
+*@note
+* 
+*@since    2014-9-15 17:59
+*@attention
+* 
+*/
 GPrivate void JNICALL BindNativeMethod(jvmtiEnv *jvmti_env,
                                        JNIEnv* jni_env,
                                        jthread thread,
@@ -68,59 +185,76 @@ GPrivate void JNICALL BindNativeMethod(jvmtiEnv *jvmti_env,
                                        void* address,
                                        void** new_address_ptr)
 {
-    printf("%s\n", __FUNCTION__);
+    /*GCMON_PRINT_FUNC();*/
 
     if (NULL == gfnPerf_Attach)
     {
         String_t szName = NULL;
         String_t szSig = NULL;
         String_t szGsig = NULL;
+        jvmtiError error = JVMTI_ERROR_NONE;
 
-        RawMonitorEnter();
+        GASSERT(gpJvmtiEnv == jvmti_env);
+        error = RawMonitorEnter();
 
-        gEnv->GetMethodName(gpEnv, method, &szName, &szSig, &szGsig);
-
-        if (address != NULL
-            && new_address_ptr != NULL
-            && address == *new_address_ptr
-            && szName != NULL
-            && szSig != NULL
-            && NULL == szGsig
-            && 0 == strcmp(szName, "attach")
-            && 0 == strcmp(szSig, "(Ljava/lang/String;II)Ljava/nio/ByteBuffer;"))
+        if (JVMTI_ERROR_NONE == error && NULL == gfnPerf_Attach)
         {
-            gfnPerf_Attach = (Perf_Attach_t)address;
+            error = gJvmtiEnv->GetMethodName(gpJvmtiEnv, method, &szName, &szSig, &szGsig);
+
+            if (JVMTI_ERROR_NONE == error
+                && address != NULL
+                && new_address_ptr != NULL
+                && address == *new_address_ptr
+                && szName != NULL
+                && szSig != NULL
+                && NULL == szGsig
+                && 0 == strcmp(szName, "attach")
+                && 0 == strcmp(szSig, "(Ljava/lang/String;II)Ljava/nio/ByteBuffer;"))
+            {
+                gfnPerf_Attach = (Perf_Attach_t)address;
+                GetPerfMemoryAddress(jvmti_env, jni_env);
+            }
+
+            gcmon_debug_msg("%s --> method = 0x%p \t address = 0x%p \t new_address_ptr = 0x%p \t *new_address_ptr = 0x%p name = %s \t sig = %s \t gsig = %s \n",
+                __FUNCTION__, method, address, new_address_ptr, *new_address_ptr, szName, szSig, szGsig);
+
+            gJvmtiEnv->Deallocate(gpJvmtiEnv, szName);
+            gJvmtiEnv->Deallocate(gpJvmtiEnv, szSig);
+            gJvmtiEnv->Deallocate(gpJvmtiEnv, szGsig);
         }
 
-        gcmon_debug_msg("%s --> method = 0x%p \t address = 0x%p \t new_address_ptr = 0x%p \t *new_address_ptr = 0x%p name = %s \t sig = %s \t gsig = %s \n",
-            __FUNCTION__, method, address, new_address_ptr, *new_address_ptr, szName, szSig, szGsig);
-
-        gEnv->Deallocate(gpEnv, szName);
-        gEnv->Deallocate(gpEnv, szSig);
-        gEnv->Deallocate(gpEnv, szGsig);
-        RawMonitorExit();
+        error = RawMonitorExit();
     }
-
-    GetPerfMemoryAddress(jvmti_env, jni_env);
 }
 
-JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *jvm, char *options, void *reserved)
+/*!
+*@brief        将全局变量gCapabilities清零
+*@author       zhaohm3
+*@retval
+*@note
+* 
+*@since    2014-9-15 18:00
+*@attention
+* 
+*/
+GPrivate void ZeroCapabilities()
 {
-    jint result = JNI_ERR;
-    JavaVM pJvm = *jvm;
-    jvmtiEnv pEnv = NULL;
-
-    result = pJvm->GetEnv(jvm, (void **)&gpEnv, JVMTI_VERSION_1_1);
-
-    if (result != JNI_OK || NULL == gpEnv)
-    {
-        printf("ERROR: Unable to access JVMTI!");
-        return JNI_ERR;
-    }
-
-    gEnv = pEnv = *gpEnv;
-
     memset(&gCapabilities, 0, sizeof(jvmtiCapabilities));
+}
+
+/*!
+*@brief        初始化gcmon的gCapabilities环境
+*@author       zhaohm3
+*@retval
+*@note
+* 
+*@since    2014-9-15 18:00
+*@attention
+* 
+*/
+GPrivate void InitCapabilities()
+{
+    ZeroCapabilities();
     gCapabilities.can_get_owned_monitor_info = 1;
     gCapabilities.can_get_current_contended_monitor = 1;
     gCapabilities.can_get_monitor_info = 1;
@@ -133,60 +267,187 @@ JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *jvm, char *options, void *reserved)
     gCapabilities.can_generate_object_free_events = 1;
     gCapabilities.can_generate_exception_events = 1;
     gCapabilities.can_generate_all_class_hook_events = 1;
-
-    gError = pEnv->AddCapabilities(gpEnv, &gCapabilities);
-
-    if (gError != JVMTI_ERROR_NONE)
-    {
-        printf("ERROR: Can't get JVMTI capabilities");
-        return JNI_ERR;
-    }
-
-    memset(&gCallbacks, 0, sizeof(jvmtiEventCallbacks));
-    gCallbacks.GarbageCollectionStart = StartGarbageCollection;
-    gCallbacks.GarbageCollectionFinish = FinishGarbageCollection;
-    gCallbacks.MethodEntry = EntryMethod;
-    gCallbacks.VMInit = InitVM;
-    gCallbacks.VMStart = StartVM;
-    gCallbacks.NativeMethodBind = BindNativeMethod;
-
-    gError = pEnv->SetEventCallbacks(gpEnv, &gCallbacks, sizeof(jvmtiEventCallbacks));
-
-    if (gError != JVMTI_ERROR_NONE)
-    {
-        printf("ERROR: Can't Set Callbacks!");
-        return JNI_ERR;
-    }
-
-    gError = pEnv->CreateRawMonitor(gpEnv, "GC Monitor", &gMonitorID);
-
-    if (gError != JVMTI_ERROR_NONE)
-    {
-        printf("ERROR: Can't Create Raw Monitor!");
-        return JNI_ERR;
-    }
-
-    pEnv->SetEventNotificationMode(gpEnv, JVMTI_ENABLE, JVMTI_EVENT_VM_INIT, NULL);
-    pEnv->SetEventNotificationMode(gpEnv, JVMTI_ENABLE, JVMTI_EVENT_VM_START, NULL);
-    pEnv->SetEventNotificationMode(gpEnv, JVMTI_ENABLE, JVMTI_EVENT_EXCEPTION, NULL);
-    pEnv->SetEventNotificationMode(gpEnv, JVMTI_ENABLE, JVMTI_EVENT_EXCEPTION_CATCH, NULL);
-    pEnv->SetEventNotificationMode(gpEnv, JVMTI_ENABLE, JVMTI_EVENT_METHOD_ENTRY, NULL);
-    pEnv->SetEventNotificationMode(gpEnv, JVMTI_ENABLE, JVMTI_EVENT_METHOD_EXIT, NULL);
-    pEnv->SetEventNotificationMode(gpEnv, JVMTI_ENABLE, JVMTI_EVENT_NATIVE_METHOD_BIND, NULL);
-    pEnv->SetEventNotificationMode(gpEnv, JVMTI_ENABLE, JVMTI_EVENT_MONITOR_WAIT, NULL);
-    pEnv->SetEventNotificationMode(gpEnv, JVMTI_ENABLE, JVMTI_EVENT_MONITOR_WAITED, NULL);
-    pEnv->SetEventNotificationMode(gpEnv, JVMTI_ENABLE, JVMTI_EVENT_MONITOR_CONTENDED_ENTER, NULL);
-    pEnv->SetEventNotificationMode(gpEnv, JVMTI_ENABLE, JVMTI_EVENT_MONITOR_CONTENDED_ENTERED, NULL);
-    pEnv->SetEventNotificationMode(gpEnv, JVMTI_ENABLE, JVMTI_EVENT_GARBAGE_COLLECTION_START, NULL);
-    pEnv->SetEventNotificationMode(gpEnv, JVMTI_ENABLE, JVMTI_EVENT_GARBAGE_COLLECTION_FINISH, NULL);
-
-    gcmon_debug_fopen();
-
-    return JNI_OK;
 }
 
+/*!
+*@brief        将全局变量gCallbacks清零
+*@author       zhaohm3
+*@retval
+*@note
+* 
+*@since    2014-9-15 18:00
+*@attention
+* 
+*/
+GPrivate void ZeroCallbacks()
+{
+    memset(&gCallbacks, 0, sizeof(jvmtiEventCallbacks));
+}
+
+/*!
+*@brief        初始化gcmon的gCallbacks环境
+*@author       zhaohm3
+*@retval
+*@note
+* 
+*@since    2014-9-15 18:01
+*@attention
+* 
+*/
+GPrivate void InitCallbacks()
+{
+    ZeroCallbacks();
+    gCallbacks.VMInit = InitVM;
+    gCallbacks.VMStart = StartVM;
+    gCallbacks.MethodEntry = EntryMethod;
+    gCallbacks.NativeMethodBind = BindNativeMethod;
+    gCallbacks.GarbageCollectionStart = StartGarbageCollection;
+    gCallbacks.GarbageCollectionFinish = FinishGarbageCollection;
+}
+
+/*!
+*@brief        开启或者关闭gcmon的gCapabilities事件
+*@author       zhaohm3
+*@param[in]    mode
+*@retval
+*@note
+* 
+*@since    2014-9-15 18:02
+*@attention
+* 
+*/
+GPrivate void SetEventNotificationMode(jvmtiEventMode mode)
+{
+    gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_VM_INIT, NULL);
+    gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_VM_START, NULL);
+    gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_EXCEPTION, NULL);
+    gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_EXCEPTION_CATCH, NULL);
+    gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_METHOD_ENTRY, NULL);
+    gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_METHOD_EXIT, NULL);
+    gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_NATIVE_METHOD_BIND, NULL);
+    gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_MONITOR_WAIT, NULL);
+    gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_MONITOR_WAITED, NULL);
+    gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_MONITOR_CONTENDED_ENTER, NULL);
+    gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_MONITOR_CONTENDED_ENTERED, NULL);
+    gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_GARBAGE_COLLECTION_START, NULL);
+    gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_GARBAGE_COLLECTION_FINISH, NULL);
+}
+
+/*!
+*@brief        清除gcmon所设置的jvmti环境
+*@author       zhaohm3
+*@retval
+*@note
+* 
+*@since    2014-9-15 18:05
+*@attention
+* 
+*/
+GPrivate void ClearJvmtiEnv()
+{
+    if (NULL == gpJvmtiEnv || NULL == gJvmtiEnv)
+    {
+        return;
+    }
+
+    if (gMonitorID != NULL)
+    {
+        gJvmtiEnv->DestroyRawMonitor(gpJvmtiEnv, gMonitorID);
+    }
+
+    ZeroCapabilities();
+    gJvmtiEnv->AddCapabilities(gpJvmtiEnv, &gCapabilities);
+
+    ZeroCallbacks();
+    gJvmtiEnv->SetEventCallbacks(gpJvmtiEnv, &gCallbacks, sizeof(jvmtiEventCallbacks));
+
+    SetEventNotificationMode(JVMTI_DISABLE);
+}
+
+/*!
+*@brief        设置gcmon的jvmti环境
+*@author       zhaohm3
+*@retval
+*@note
+* 
+*@since    2014-9-15 18:05
+*@attention
+* 
+*/
+GPrivate jvmtiError InitJvmtiEnv()
+{
+    jvmtiError error = JVMTI_ERROR_NONE;
+
+    error = gJvmtiEnv->CreateRawMonitor(gpJvmtiEnv, "GC Monitor", &gMonitorID);
+    GCMON_CHECK_ERROR(error, "ERROR: Can't Create Raw Monitor!", ERROR);
+
+    InitCapabilities();
+    error = gJvmtiEnv->AddCapabilities(gpJvmtiEnv, &gCapabilities);
+    GCMON_CHECK_ERROR(error, "ERROR: Can't Set JVMTI Capabilities.", ERROR);
+
+    InitCallbacks();
+    error = gJvmtiEnv->SetEventCallbacks(gpJvmtiEnv, &gCallbacks, sizeof(jvmtiEventCallbacks));
+    GCMON_CHECK_ERROR(error, "ERROR: Can't Set Callbacks.", ERROR);
+
+    SetEventNotificationMode(JVMTI_ENABLE);
+
+ERROR:
+    return error;
+}
+
+/*!
+*@brief        jvmti的Agent_OnLoad接口实现，用于初始化gcmon环境
+*@author       zhaohm3
+*@param[in]    jvm
+*@param[in]    options
+*@param[in]    reserved
+*@retval
+*@note
+* 
+*@since    2014-9-15 18:07
+*@attention
+* 
+*/
+JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *jvm, char *options, void *reserved)
+{
+    jint ret = JNI_ERR;
+    jvmtiError error = JVMTI_ERROR_NONE;
+
+    GCMON_PRINT_FUNC();
+
+    ret = (*jvm)->GetEnv(jvm, (void **)&gpJvmtiEnv, JVMTI_VERSION_1_1);
+    if (ret != JNI_OK || NULL == gpJvmtiEnv)
+    {
+        printf("ERROR: Unable to access JVMTI!");
+        return ret;
+    }
+
+    gJvmtiEnv = *gpJvmtiEnv;
+    error = InitJvmtiEnv();
+    GCMON_CHECK_ERROR(error, "ERROR: Can't Init JVMTI Env.", ERROR);
+
+    gcmon_debug_fopen();
+    return JNI_OK;
+
+ERROR:
+    ClearJvmtiEnv();;
+    return JNI_ERR;
+}
+
+/*!
+*@brief        jvmti的Agent_OnUnload接口的实现，拥有清理gcmon资源
+*@author       zhaohm3
+*@param[in]    vm
+*@retval
+*@note
+* 
+*@since    2014-9-15 18:08
+*@attention
+* 
+*/
 JNIEXPORT void JNICALL Agent_OnUnload(JavaVM *vm)
 {
-    gEnv->DestroyRawMonitor(gpEnv, gMonitorID);
+    GCMON_PRINT_FUNC();
+    ClearJvmtiEnv();
     gcmon_debug_fclose();
 }

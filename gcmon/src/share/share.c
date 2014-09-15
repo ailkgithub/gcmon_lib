@@ -64,8 +64,8 @@ int gcmon_debug_msg(const char *fmt, ...)
 {
 #ifdef _DEBUG
     int len = 0;
-
     va_list args = NULL;
+
     va_start(args, fmt);
     if (gFile != NULL)
     {

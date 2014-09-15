@@ -85,7 +85,7 @@ typedef enum tagUnits {
 //! Miscellaneous flags，用于给PerfDataEntry.flags赋值
 typedef enum tagFlags {
     F_None = 0x0,
-    F_Supported = 0x1                   //!< interface is supported - java.* and com.sun.*
+    F_Supported = 0x1
 } Flags;
 
 //! BasicType到签名的映射，用于给PerfDataEntry.data_type赋值
@@ -110,6 +110,65 @@ const CharP_t gTtype2name[T_CONFLICT + 1] = {
     "*conflict*"
 };
 
+GPrivate Char_t type2char(BasicType_t t)
+{
+    return (Uint32_t)t < T_CONFLICT + 1 ? gTtype2char[t] : 0;
+}
+
+GPrivate String_t type2name(BasicType_t t)
+{
+    return (Uint32_t)t < T_CONFLICT + 1 ? gTtype2name[t] : NULL;
+}
+
+GPrivate BasicType_t name2type(String_t szName)
+{
+    Int32_t i = 0;
+
+    for (i = T_BOOLEAN; i <= T_VOID; i++)
+    {
+        BasicType_t t = (BasicType_t)i;
+
+        if (gTtype2name[i] != NULL && 0 == strcmp(gTtype2name[i], szName))
+        {
+            return t;
+        }
+    }
+
+    return T_ILLEGAL;
+}
+
+GPrivate BasicType_t char2type(char c) {
+    switch (c) {
+    case 'B': return T_BYTE;
+    case 'C': return T_CHAR;
+    case 'D': return T_DOUBLE;
+    case 'F': return T_FLOAT;
+    case 'I': return T_INT;
+    case 'J': return T_LONG;
+    case 'S': return T_SHORT;
+    case 'Z': return T_BOOLEAN;
+    case 'V': return T_VOID;
+    case 'L': return T_OBJECT;
+    case '[': return T_ARRAY;
+    }
+    return T_ILLEGAL;
+}
+
+GPrivate void perf_build_tree(void *address)
+{
+
+}
+
+GPrivate void perf_get_require()
+{
+
+}
+
+GPrivate void perf_analyze_tree()
+{
+
+}
+
 GPrivate Int32_t gCounter = 0;
 
 GPublic void perf_memory_analyze(void *address)
@@ -119,22 +178,46 @@ GPublic void perf_memory_analyze(void *address)
     if (pPerf != NULL)
     {
         Int32_t i = 0;
-        CharP_t pCurr = (CharP_t)(((CharP_t)(address)) + sizeof(PerfDataPrologue_t));
+        CharP_t pCurr = (CharP_t)(((CharP_t)(address)) + pPerf->entry_offset);
+
+        GASSERT(pPerf->entry_offset == sizeof(PerfDataPrologue_t));
 
         for (i = 0; i < pPerf->num_entries; i++)
         {
             PerfDataEntryP_t pEntry = (PerfDataEntryP_t)pCurr;
             String_t szEntryName = (String_t)(pCurr + pEntry->name_offset);
+            CharP_t pData = (CharP_t)(pCurr + pEntry->data_offset);
 
-            if (0 == gCounter)
+            if (10 == gCounter)
             {
-                gcmon_debug_msg("%s \n", szEntryName);
+                switch (pEntry->data_type)
+                {
+                case 'B':
+                    gcmon_debug_msg("%s --> %s --> %s \n", szEntryName,
+                        type2name(char2type(pEntry->data_type)),
+                        (String_t)pData);
+                    break;
+                case 'J':
+                    gcmon_debug_msg("%s --> %s --> %lld \n", szEntryName,
+                        type2name(char2type(pEntry->data_type)),
+                        *(jlong*)pData);
+                    break;
+                default:
+                    break;
+                }
+
             }
 
             pCurr += pEntry->entry_length;
         }
 
-        gCounter = 1;
+        gCounter += 1;
+
+        if (gCounter > 100)
+        {
+            gCounter = 100;
+        }
+
         gcmon_debug_flush();
     }
 }

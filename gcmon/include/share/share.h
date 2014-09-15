@@ -38,6 +38,19 @@ GPublic void gcmon_debug_flush();
 //! 打印调试信息
 GPublic int gcmon_debug_msg(const char *fmt, ...);
 
+//! 错误检测
+#define GCMON_CHECK_ERROR(error, msg, where)                \
+do                                                          \
+{                                                           \
+    jvmtiError e = (error);                                 \
+    if (e != JVMTI_ERROR_NONE)                              \
+    {                                                       \
+        gcmon_debug_msg("JVMTI Error No. = %d : %s in %s --> %s : %d \n", e, msg, __FUNCTION__, __FILE__, __LINE__); \
+        printf("JVMTI Error No. = %d : %s \n", e, msg); \
+        goto where;                                         \
+    }                                                       \
+} while (0)
+
 //! 检测句柄是否为空
 #define GCMON_CHECK_NULL(handle, where)                     \
 do                                                          \
@@ -79,6 +92,12 @@ do                                                          \
         handle = NULL;                                      \
     }                                                       \
 } while (0)
+
+#ifdef _DEBUG
+    #define GCMON_PRINT_FUNC() printf("%s\n", __FUNCTION__)
+#else
+    #define GCMON_PRINT_FUNC()
+#endif
 
 //! 断言重定义
 #define GASSERT assert
