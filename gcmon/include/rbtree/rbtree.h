@@ -49,10 +49,10 @@ GPublic RBDataP_t (*rbtree_get_rbd_combiner(RBTreeP_t pTree))(RBDataP_t, RBDataP
 GPublic Count32_t rbtree_node_count(RBTreeP_t pTree);
 
 //! 红黑树是否为空
-GPublic Bool_t rbtree_is_empty(RBTreeP_t pTree);
+GPublic Bool32_t rbtree_is_empty(RBTreeP_t pTree);
 
 //! 将pData插入红黑树
-GPublic RBTreeP_t rbtree_insert(RBTreeP_t pTree, RBDataP_t pData, BoolP_t pbExist);
+GPublic RBTreeP_t rbtree_insert(RBTreeP_t pTree, RBDataP_t pData, Bool32P_t pbExist);
 
 //! 从红黑树中删除存储pData的节点
 GPublic RBTreeP_t rbtree_delete(RBTreeP_t pTree, RBDataP_t pData);

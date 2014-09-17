@@ -27,6 +27,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\list\ulist.c" />
     <ClCompile Include="src\main\main.c" />
     <ClCompile Include="src\rbtree\urbtree.c" />
     <ClCompile Include="src\utest.c" />

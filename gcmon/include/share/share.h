@@ -15,9 +15,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "hotspot/jni.h"
 #include "hotspot/jvmti.h"
-
 #include "share/type.h"
 
 //! 标记私有接口，不对外提供

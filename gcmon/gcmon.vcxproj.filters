@@ -13,6 +13,9 @@
     <Filter Include="perf">
       <UniqueIdentifier>{cc4e51c7-9314-4128-b9b9-e9851cd0fd07}</UniqueIdentifier>
     </Filter>
+    <Filter Include="list">
+      <UniqueIdentifier>{0b4290b4-96bc-4276-9592-d083497f7546}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gcmon\gcmon.c">
@@ -27,6 +30,9 @@
     <ClCompile Include="src\share\share.c">
       <Filter>share</Filter>
     </ClCompile>
+    <ClCompile Include="src\list\list.c">
+      <Filter>list</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\rbtree\rbtree.h">
@@ -40,6 +46,9 @@
     </ClInclude>
     <ClInclude Include="include\perf\perf.h">
       <Filter>perf</Filter>
+    </ClInclude>
+    <ClInclude Include="include\list\list.h">
+      <Filter>list</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

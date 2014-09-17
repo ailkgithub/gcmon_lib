@@ -10,6 +10,9 @@
     <Filter Include="rbtree">
       <UniqueIdentifier>{de8b6397-7ba4-48e5-a01b-0ddcf97d051d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="list">
+      <UniqueIdentifier>{8ab40382-5ba1-4d9a-845e-cdd9110409aa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main\main.c">
@@ -20,6 +23,9 @@
     </ClCompile>
     <ClCompile Include="src\utest.c">
       <Filter>utest</Filter>
+    </ClCompile>
+    <ClCompile Include="src\list\ulist.c">
+      <Filter>list</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

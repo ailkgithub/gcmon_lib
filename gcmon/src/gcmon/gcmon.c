@@ -4,22 +4,47 @@
  *@author   zhaohm3
  *@date 2014-9-15 17:53
  *@note
- * 
+ *
  ****************************************************************/
 
 #include "share/share.h"
 #include "perf/perf.h"
 
-
-GPrivate jvmtiEnv *gpJvmtiEnv = NULL;                   
-GPrivate jvmtiEnv gJvmtiEnv = NULL;
-GPrivate jvmtiCapabilities gCapabilities = { 0 };
-GPrivate jvmtiEventCallbacks gCallbacks = { 0 };
-GPrivate jrawMonitorID gMonitorID = NULL;
+GPrivate jvmtiEnv *gpJvmtiEnv = NULL;               //!< JVMTI开发环境
+GPrivate jvmtiEnv gJvmtiEnv = NULL;                 //!< gJvmtiEnv = *gpJvmtiEnv;
+GPrivate jvmtiCapabilities gCapabilities = { 0 };   //!< 控制JVMTI接口的对外提供情况
+GPrivate jvmtiEventCallbacks gCallbacks = { 0 };    //!< 控制JVMTI接口回调函数
+GPrivate jrawMonitorID gMonitorID = NULL;           //!< 管程变量，用于同步
 
 typedef jobject(JNICALL *Perf_Attach_t)(JNIEnv *, jobject, jstring, int, int);
-GPrivate Perf_Attach_t gfnPerf_Attach = NULL;
-GPrivate void *gPerfMemory = NULL;
+GPrivate Perf_Attach_t gfnPerf_Attach = NULL;       //!< jvm动态库中Perf_Attach接口的地址
+GPrivate void *gPerfMemory = NULL;                  //!< 用于存放JVM性能计数器的共享内存区的地址
+
+//! 用于处理java.lang.OutOfMemoryError异常
+#define GOOM_HEAP_SPACE 0                           //!< Java heap space
+#define GOOM_OVERHEAD_LIMIT 1                       //!< GC overhead limit exceeded
+#define GOOM_NATIVE_THREAD 2                        //!< unable to create new native thread
+#define GOOM_PERM_SPACE 3                           //!< PermGen space
+#define GOOM_ARRAY_SIZE 4                           //!< Requested array size exceeds VM limit
+
+//! 当发生OutOfMemoryError异常时，由JVM抛出的内存资源耗尽的提示
+GPrivate String_t gaszExhaustMsg[] =
+{
+    //! MaxHeapSize耗尽，需要增加MaxHeapSize
+    [GOOM_HEAP_SPACE] = "Java heap space",
+
+    //! GC时间超过98%，而回收的heap却不足2%(UseGCOverheadLimit\GCTimeLimit\GCHeapFreeLimit)
+    [GOOM_OVERHEAD_LIMIT] = "GC overhead limit exceeded",
+
+    //! 线程数过多、线程栈太大、HeapSize太大导致能够用于创建Thread的空间太小
+    [GOOM_NATIVE_THREAD] = "unable to create new native thread",
+
+    //! 永久代空间太小(MaxPermSize)
+    [GOOM_PERM_SPACE] = "PermGen space",
+
+    //! 创建的数组元素个数太多，导致无法分配内存
+    [GOOM_ARRAY_SIZE] = "Requested array size exceeds VM limit"
+};
 
 /*!
 *@brief        获取JVM共享的PerfMemory地址
@@ -28,10 +53,10 @@ GPrivate void *gPerfMemory = NULL;
 *@param[in]    jni_env
 *@retval
 *@note
-* 
+*
 *@since    2014-9-15 17:54
 *@attention
-* 
+*
 */
 GPrivate void GetPerfMemoryAddress(jvmtiEnv *jvmti_env, JNIEnv* jni_env)
 {
@@ -48,10 +73,10 @@ GPrivate void GetPerfMemoryAddress(jvmtiEnv *jvmti_env, JNIEnv* jni_env)
 *@author       zhaohm3
 *@retval
 *@note
-* 
+*
 *@since    2014-9-15 17:55
 *@attention
-* 
+*
 */
 GPrivate jvmtiError RawMonitorEnter()
 {
@@ -63,10 +88,10 @@ GPrivate jvmtiError RawMonitorEnter()
 *@author       zhaohm3
 *@retval
 *@note
-* 
+*
 *@since    2014-9-15 17:55
 *@attention
-* 
+*
 */
 GPrivate jvmtiError RawMonitorExit()
 {
@@ -81,10 +106,10 @@ GPrivate jvmtiError RawMonitorExit()
 *@param[in]    thread
 *@retval
 *@note
-* 
+*
 *@since    2014-9-15 17:57
 *@attention
-* 
+*
 */
 GPrivate void JNICALL InitVM(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthread thread)
 {
@@ -98,14 +123,99 @@ GPrivate void JNICALL InitVM(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthread threa
 *@param[in]    jni_env
 *@retval
 *@note
-* 
+*
 *@since    2014-9-15 17:57
 *@attention
-* 
+*
 */
 GPrivate void JNICALL StartVM(jvmtiEnv *jvmti_env, JNIEnv* jni_env)
 {
     GCMON_PRINT_FUNC();
+}
+
+/*!
+*@brief        Exception接口回调函数
+*@author       zhaohm3
+*@param[in]    jvmti_env
+*@param[in]    jni_env
+*@param[in]    thread
+*@param[in]    method
+*@param[in]    location
+*@param[in]    exception
+*@param[in]    catch_method
+*@param[in]    catch_location
+*@retval
+*@note
+* 
+*@since    2014-9-16 14:27
+*@attention
+* 
+*/
+GPrivate void JNICALL ExceptionEvent(jvmtiEnv *jvmti_env,
+    JNIEnv* jni_env,
+    jthread thread,
+    jmethodID method,
+    jlocation location,
+    jobject exception,
+    jmethodID catch_method,
+    jlocation catch_location)
+{
+    GCMON_PRINT_FUNC();
+    {
+        String_t szName = NULL;
+        String_t szSig = NULL;
+        String_t szGsig = NULL;
+        jvmtiError error = JVMTI_ERROR_NONE;
+        error = gJvmtiEnv->GetMethodName(gpJvmtiEnv, method, &szName, &szSig, &szGsig);
+        printf("%s \t method name = %s \t sig = %s \t gsig = %s \n", __FUNCTION__, szName, szSig, szGsig);
+        gJvmtiEnv->Deallocate(gpJvmtiEnv, szName);
+        gJvmtiEnv->Deallocate(gpJvmtiEnv, szSig);
+        gJvmtiEnv->Deallocate(gpJvmtiEnv, szGsig);
+
+        szName = szSig = szGsig = NULL;
+        error = gJvmtiEnv->GetMethodName(gpJvmtiEnv, catch_method, &szName, &szSig, &szGsig);
+        printf("%s \t catch_method name = %s \t sig = %s \t gsig = %s \n", __FUNCTION__, szName, szSig, szGsig);
+        gJvmtiEnv->Deallocate(gpJvmtiEnv, szName);
+        gJvmtiEnv->Deallocate(gpJvmtiEnv, szSig);
+        gJvmtiEnv->Deallocate(gpJvmtiEnv, szGsig);
+    }
+}
+
+/*!
+*@brief        ExceptionCatch接口回调函数
+*@author       zhaohm3
+*@param[in]    jvmti_env
+*@param[in]    jni_env
+*@param[in]    thread
+*@param[in]    method
+*@param[in]    location
+*@param[in]    exception
+*@retval
+*@note
+* 
+*@since    2014-9-16 14:27
+*@attention
+* 
+*/
+GPrivate void JNICALL CatchExceptionEvent(jvmtiEnv *jvmti_env,
+    JNIEnv* jni_env,
+    jthread thread,
+    jmethodID method,
+    jlocation location,
+    jobject exception)
+{
+    GCMON_PRINT_FUNC();
+    {
+        String_t szName = NULL;
+        String_t szSig = NULL;
+        String_t szGsig = NULL;
+        jvmtiError error = JVMTI_ERROR_NONE;
+        error = gJvmtiEnv->GetMethodName(gpJvmtiEnv, method, &szName, &szSig, &szGsig);
+        printf("%s \t method name = %s \t sig = %s \t gsig = %s \n", __FUNCTION__, szName, szSig, szGsig);
+        gJvmtiEnv->Deallocate(gpJvmtiEnv, szName);
+        gJvmtiEnv->Deallocate(gpJvmtiEnv, szSig);
+        gJvmtiEnv->Deallocate(gpJvmtiEnv, szGsig);
+    }
 }
 
 /*!
@@ -117,49 +227,15 @@ GPrivate void JNICALL StartVM(jvmtiEnv *jvmti_env, JNIEnv* jni_env)
 *@param[in]    method
 *@retval
 *@note
-* 
+*
 *@since    2014-9-15 17:58
 *@attention
-* 
+*
 */
 GPrivate void JNICALL EntryMethod(jvmtiEnv *jvmti_env, JNIEnv* jni_env,
     jthread thread, jmethodID method)
 {
-    /*GCMON_PRINT_FUNC();*/
-}
-
-/*!
-*@brief        GarbageCollectionStart接口回调函数
-*@author       zhaohm3
-*@param[in]    jvmti_env
-*@retval
-*@note
-* 
-*@since    2014-9-15 17:58
-*@attention
-* 
-*/
-GPrivate void JNICALL StartGarbageCollection(jvmtiEnv *jvmti_env)
-{
     GCMON_PRINT_FUNC();
-    perf_memory_analyze(gPerfMemory);
-}
-
-/*!
-*@brief        FinishGarbageCollection接口回调函数
-*@author       zhaohm3
-*@param[in]    jvmti_env
-*@retval
-*@note
-* 
-*@since    2014-9-15 17:59
-*@attention
-* 
-*/
-GPrivate void JNICALL FinishGarbageCollection(jvmtiEnv *jvmti_env)
-{
-    GCMON_PRINT_FUNC();
-    perf_memory_analyze(gPerfMemory);
 }
 
 /*!
@@ -173,20 +249,21 @@ GPrivate void JNICALL FinishGarbageCollection(jvmtiEnv *jvmti_env)
 *@param[in]    new_address_ptr
 *@retval
 *@note
-* 
+*
 *@since    2014-9-15 17:59
 *@attention
-* 
+*
 */
 GPrivate void JNICALL BindNativeMethod(jvmtiEnv *jvmti_env,
-                                       JNIEnv* jni_env,
-                                       jthread thread,
-                                       jmethodID method,
-                                       void* address,
-                                       void** new_address_ptr)
+    JNIEnv* jni_env,
+    jthread thread,
+    jmethodID method,
+    void* address,
+    void** new_address_ptr)
 {
-    /*GCMON_PRINT_FUNC();*/
+    GCMON_PRINT_FUNC();
 
+    //! 获取Perf_Attach的地址
     if (NULL == gfnPerf_Attach)
     {
         String_t szName = NULL;
@@ -212,6 +289,8 @@ GPrivate void JNICALL BindNativeMethod(jvmtiEnv *jvmti_env,
                 && 0 == strcmp(szSig, "(Ljava/lang/String;II)Ljava/nio/ByteBuffer;"))
             {
                 gfnPerf_Attach = (Perf_Attach_t)address;
+
+                //! 通过Perf_Attach接口，Attach到JVM，获取PerfMemory地址
                 GetPerfMemoryAddress(jvmti_env, jni_env);
             }
 
@@ -228,14 +307,73 @@ GPrivate void JNICALL BindNativeMethod(jvmtiEnv *jvmti_env,
 }
 
 /*!
+*@brief        ResourceExhausted接口回调函数
+*@author       zhaohm3
+*@param[in]    jvmti_env
+*@param[in]    jni_env
+*@param[in]    flags
+*@param[in]    reserved
+*@param[in]    description
+*@retval
+*@note
+* 
+*@since    2014-9-16 14:41
+*@attention
+* 
+*/
+GPrivate void JNICALL ResourceExhaustedEvent(jvmtiEnv *jvmti_env,
+    JNIEnv* jni_env,
+    jint flags,
+    const void* reserved,
+    const char* description)
+{
+    GCMON_PRINT_FUNC();
+    gcmon_debug_msg("%s --> Exception MSG : %s\n", __FUNCTION__, description);
+}
+
+/*!
+*@brief        GarbageCollectionStart接口回调函数
+*@author       zhaohm3
+*@param[in]    jvmti_env
+*@retval
+*@note
+*
+*@since    2014-9-15 17:58
+*@attention
+*
+*/
+GPrivate void JNICALL StartGarbageCollection(jvmtiEnv *jvmti_env)
+{
+    GCMON_PRINT_FUNC();
+    perf_memory_analyze(gPerfMemory);
+}
+
+/*!
+*@brief        FinishGarbageCollection接口回调函数
+*@author       zhaohm3
+*@param[in]    jvmti_env
+*@retval
+*@note
+*
+*@since    2014-9-15 17:59
+*@attention
+*
+*/
+GPrivate void JNICALL FinishGarbageCollection(jvmtiEnv *jvmti_env)
+{
+    GCMON_PRINT_FUNC();
+    perf_memory_analyze(gPerfMemory);
+}
+
+/*!
 *@brief        将全局变量gCapabilities清零
 *@author       zhaohm3
 *@retval
 *@note
-* 
+*
 *@since    2014-9-15 18:00
 *@attention
-* 
+*
 */
 GPrivate void ZeroCapabilities()
 {
@@ -247,10 +385,10 @@ GPrivate void ZeroCapabilities()
 *@author       zhaohm3
 *@retval
 *@note
-* 
+*
 *@since    2014-9-15 18:00
 *@attention
-* 
+*
 */
 GPrivate void InitCapabilities()
 {
@@ -267,6 +405,8 @@ GPrivate void InitCapabilities()
     gCapabilities.can_generate_object_free_events = 1;
     gCapabilities.can_generate_exception_events = 1;
     gCapabilities.can_generate_all_class_hook_events = 1;
+    gCapabilities.can_generate_resource_exhaustion_heap_events = 1;
+    gCapabilities.can_generate_resource_exhaustion_threads_events = 1;
 }
 
 /*!
@@ -274,10 +414,10 @@ GPrivate void InitCapabilities()
 *@author       zhaohm3
 *@retval
 *@note
-* 
+*
 *@since    2014-9-15 18:00
 *@attention
-* 
+*
 */
 GPrivate void ZeroCallbacks()
 {
@@ -289,18 +429,21 @@ GPrivate void ZeroCallbacks()
 *@author       zhaohm3
 *@retval
 *@note
-* 
+*
 *@since    2014-9-15 18:01
 *@attention
-* 
+*
 */
 GPrivate void InitCallbacks()
 {
     ZeroCallbacks();
-    gCallbacks.VMInit = InitVM;
+    /*gCallbacks.VMInit = InitVM;
     gCallbacks.VMStart = StartVM;
-    gCallbacks.MethodEntry = EntryMethod;
+    gCallbacks.Exception = ExceptionEvent;
+    gCallbacks.ExceptionCatch = CatchExceptionEvent;
+    gCallbacks.MethodEntry = EntryMethod;*/
     gCallbacks.NativeMethodBind = BindNativeMethod;
+    gCallbacks.ResourceExhausted = ResourceExhaustedEvent;
     gCallbacks.GarbageCollectionStart = StartGarbageCollection;
     gCallbacks.GarbageCollectionFinish = FinishGarbageCollection;
 }
@@ -311,10 +454,10 @@ GPrivate void InitCallbacks()
 *@param[in]    mode
 *@retval
 *@note
-* 
+*
 *@since    2014-9-15 18:02
 *@attention
-* 
+*
 */
 GPrivate void SetEventNotificationMode(jvmtiEventMode mode)
 {
@@ -329,6 +472,7 @@ GPrivate void SetEventNotificationMode(jvmtiEventMode mode)
     gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_MONITOR_WAITED, NULL);
     gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_MONITOR_CONTENDED_ENTER, NULL);
     gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_MONITOR_CONTENDED_ENTERED, NULL);
+    gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_RESOURCE_EXHAUSTED, NULL);
     gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_GARBAGE_COLLECTION_START, NULL);
     gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_GARBAGE_COLLECTION_FINISH, NULL);
 }
@@ -338,10 +482,10 @@ GPrivate void SetEventNotificationMode(jvmtiEventMode mode)
 *@author       zhaohm3
 *@retval
 *@note
-* 
+*
 *@since    2014-9-15 18:05
 *@attention
-* 
+*
 */
 GPrivate void ClearJvmtiEnv()
 {
@@ -369,10 +513,10 @@ GPrivate void ClearJvmtiEnv()
 *@author       zhaohm3
 *@retval
 *@note
-* 
+*
 *@since    2014-9-15 18:05
 *@attention
-* 
+*
 */
 GPrivate jvmtiError InitJvmtiEnv()
 {
@@ -403,10 +547,10 @@ ERROR:
 *@param[in]    reserved
 *@retval
 *@note
-* 
+*
 *@since    2014-9-15 18:07
 *@attention
-* 
+*
 */
 JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *jvm, char *options, void *reserved)
 {
@@ -435,15 +579,15 @@ ERROR:
 }
 
 /*!
-*@brief        jvmti的Agent_OnUnload接口的实现，拥有清理gcmon资源
+*@brief        jvmti的Agent_OnUnload接口的实现，用于清理gcmon资源
 *@author       zhaohm3
 *@param[in]    vm
 *@retval
 *@note
-* 
+*
 *@since    2014-9-15 18:08
 *@attention
-* 
+*
 */
 JNIEXPORT void JNICALL Agent_OnUnload(JavaVM *vm)
 {

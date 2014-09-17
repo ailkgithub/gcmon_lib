@@ -28,11 +28,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gcmon\gcmon.c" />
+    <ClCompile Include="src\list\list.c" />
     <ClCompile Include="src\perf\perf.c" />
     <ClCompile Include="src\rbtree\rbtree.c" />
     <ClCompile Include="src\share\share.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\list\list.h" />
     <ClInclude Include="include\perf\perf.h" />
     <ClInclude Include="include\rbtree\rbtree.h" />
     <ClInclude Include="include\share\share.h" />

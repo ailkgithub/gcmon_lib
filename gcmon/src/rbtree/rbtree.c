@@ -712,10 +712,10 @@ GPublic Count32_t rbtree_node_count(RBTreeP_t pTree)
 *@attention
 * 
 */
-GPublic Bool_t rbtree_is_empty(RBTreeP_t pTree)
+GPublic Bool32_t rbtree_is_empty(RBTreeP_t pTree)
 {
     GASSERT(pTree != NULL);
-    return (Bool_t)(0 == pTree->dwCount);
+    return (Bool32_t)(0 == pTree->dwCount);
 }
 
  /*!
@@ -1360,9 +1360,9 @@ ERROR:
 *@attention
 * 
 */
-GPublic RBTreeP_t rbtree_insert(RBTreeP_t pTree, RBDataP_t pData, BoolP_t pbExist)
+GPublic RBTreeP_t rbtree_insert(RBTreeP_t pTree, RBDataP_t pData, Bool32P_t pbExist)
 {
-    Bool_t bExist = FALSE;
+    Bool32_t bExist = FALSE;
     Int32_t sdwCompare = 0;
     RBNodeP_t pCurrent = NULL;
     RBNodeP_t pParent = NULL;

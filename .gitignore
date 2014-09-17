@@ -11,3 +11,4 @@
 *.suo
 *.dll
 *.exp
+utest/gcmon_debug.txt
