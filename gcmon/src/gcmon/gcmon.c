@@ -252,7 +252,7 @@ GPrivate void JNICALL BindNativeMethod(jvmtiEnv *jvmti_env,
     void* address,
     void** new_address_ptr)
 {
-    GCMON_PRINT_FUNC();
+    /*GCMON_PRINT_FUNC();*/
 
     //! 获取Perf_Attach的地址
     if (NULL == gfnPerf_Attach)
@@ -335,8 +335,8 @@ GPrivate void JNICALL ResourceExhaustedEvent(jvmtiEnv *jvmti_env,
 */
 GPrivate void JNICALL StartGarbageCollection(jvmtiEnv *jvmti_env)
 {
-    GCMON_PRINT_FUNC();
-    perf_memory_analyze(gPerfMemory);
+    /*GCMON_PRINT_FUNC();
+    perf_memory_analyze(gPerfMemory);*/
 
     if (NULL == gpPerfTree)
     {
@@ -364,7 +364,7 @@ GPrivate void JNICALL StartGarbageCollection(jvmtiEnv *jvmti_env)
 */
 GPrivate void JNICALL FinishGarbageCollection(jvmtiEnv *jvmti_env)
 {
-    GCMON_PRINT_FUNC();
+    /*GCMON_PRINT_FUNC();*/
     perf_memory_analyze(gPerfMemory);
     status_sample("Finish GC ");
 }

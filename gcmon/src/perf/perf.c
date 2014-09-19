@@ -553,7 +553,7 @@ GPublic void perf_memory_analyze(void *address)
             pCurr += pEntry->entry_length;
             pItem = pdi_search_item(pTree, szName);
 
-            if (10 == gCounter)
+            if (2 == gCounter)
             {
                 switch (pItem->byType)
                 {

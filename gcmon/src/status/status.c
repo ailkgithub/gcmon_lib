@@ -83,98 +83,120 @@ GPublic void status_init(RBTreeP_t pTree)
 #define S_JLONG(s) pdi_get_jlong(s.pItem)
 #define S_DOUBLE(s) pdi_get_double(s.pItem)
 
-#define S_J2D(j) ((Double_t)(j))
-#define S_JLONG2D(s) S_J2D(S_JLONG(s))
-
-GPrivate jlong s_ticks()
+GPrivate Double_t s_ticks()
 {
-    return S_JLONG(gTicks);
+    return S_DOUBLE(gTicks);
 }
 
-GPrivate jlong s_frequency()
+GPrivate Double_t s_frequency()
 {
-    return S_JLONG(gFrequency);
+    return S_DOUBLE(gFrequency);
 }
 
 GPrivate Double_t s_timstamp()
 {
-    return (Double_t)(S_J2D(s_ticks()) / S_J2D(s_frequency()));
+    return (Double_t)(s_ticks() / s_frequency());
 }
 
-GPrivate jlong s_s0c()
+GPrivate Double_t s_s0c()
 {
-    return S_JLONG(gS0C) / 1024;
+    return S_DOUBLE(gS0C) / 1024.000;
 }
 
-GPrivate jlong s_s1c()
+GPrivate Double_t s_s1c()
 {
-    return S_JLONG(gS1C) / 1024;
+    return S_DOUBLE(gS1C) / 1024.000;
 }
 
-GPrivate jlong s_s0u()
+GPrivate Double_t s_s0u()
 {
-    return S_JLONG(gS0U) / 1024;
+    return S_DOUBLE(gS0U) / 1024.000;
 }
 
-GPrivate jlong s_s1u()
+GPrivate Double_t s_s1u()
 {
-    return S_JLONG(gS1U) / 1024;
+    return S_DOUBLE(gS1U) / 1024.000;
 }
 
-GPrivate jlong s_ec()
+GPrivate Double_t s_ec()
 {
-    return S_JLONG(gEC) / 1024;
+    return S_DOUBLE(gEC) / 1024.000;
 }
 
-GPrivate jlong s_eu()
+GPrivate Double_t s_eu()
 {
-    jlong eu = S_JLONG(gEU) / 1024;
-    return eu;
+    return S_DOUBLE(gEU) / 1024.000;
 }
 
-GPrivate jlong s_oc()
+GPrivate Double_t s_oc()
 {
-    return S_JLONG(gOC) / 1024;
+    return S_DOUBLE(gOC) / 1024.000;
 }
 
-GPrivate jlong s_ou()
+GPrivate Double_t s_ou()
 {
-    return S_JLONG(gOU) / 1024;
+    return S_DOUBLE(gOU) / 1024.000;
 }
 
-GPrivate jlong s_pc()
+GPrivate Double_t s_pc()
 {
-    return S_JLONG(gPC) / 1024;
+    return S_DOUBLE(gPC) / 1024.000;
 }
 
-GPrivate jlong s_pu()
+GPrivate Double_t s_pu()
 {
-    return S_JLONG(gPU) / 1024;
+    return S_DOUBLE(gPU) / 1024.000;
+}
+
+
+GPrivate Double_t s_s0f()
+{
+    return s_s0c() - s_s0u();
+}
+
+GPrivate Double_t s_s1f()
+{
+    return s_s1c() - s_s1u();
+}
+
+GPrivate Double_t s_ef()
+{
+    return s_ec() - s_eu();
+}
+
+GPrivate Double_t s_of()
+{
+    return s_oc() - s_ou();
+}
+
+GPrivate Double_t s_pf()
+{
+    return s_pc() - s_pu();
 }
 
 GPrivate Double_t s_s0p()
 {
-    return (Double_t)((1.000 - S_J2D(((S_J2D(s_s0c()) - S_J2D(s_s0u())) / S_J2D(s_s0c())))) * 100.000);
+    return (Double_t)((1.000 - ((s_s0c() - s_s0u()) / s_s0c())) * 100.000);
 }
 
 GPrivate Double_t s_s1p()
 {
-    return (Double_t)((1.000 - S_J2D(((S_J2D(s_s1c()) - S_J2D(s_s1u())) / S_J2D(s_s1c())))) * 100.000);
+    return (Double_t)((1.000 - ((s_s1c() - s_s1u()) / s_s1c())) * 100.000);
 }
 
 GPrivate Double_t s_ep()
 {
-    return (Double_t)((1.000 - S_J2D(((S_J2D(s_ec()) - S_J2D(s_eu())) / S_J2D(s_ec())))) * 100.000);
+    return (Double_t)((1.000 - ((s_ec() - s_eu()) / s_ec())) * 100.000);
 }
 
 GPrivate Double_t s_op()
 {
-    return (Double_t)((1.000 - S_J2D(((S_J2D(s_oc()) - S_J2D(s_ou())) / S_J2D(s_oc())))) * 100.000);
+    return (Double_t)((1.000 - ((s_oc() - s_ou()) / s_oc())) * 100.000);
 }
 
 GPrivate Double_t s_pp()
 {
-    return (Double_t)((1.000 - S_J2D(((S_J2D(s_pc()) - S_J2D(s_pu())) / S_J2D(s_pc())))) * 100.000);
+    return (Double_t)((1.000 - ((s_pc() - s_pu()) / s_pc())) * 100.000);
 }
 
 GPrivate jlong s_ygc()
@@ -189,12 +211,12 @@ GPrivate jlong s_fgc()
 
 GPrivate Double_t s_ygct()
 {
-    return (Double_t)(S_JLONG2D(gYGCT) / S_J2D(s_frequency()));
+    return (Double_t)(S_DOUBLE(gYGCT) / s_frequency());
 }
 
 GPrivate Double_t s_aygct()
 {
-    return s_ygct() / S_J2D(s_ygc());
+    return s_ygct() / S_DOUBLE(gYGC);
 }
 
 GPrivate Double_t s_cygct()
@@ -207,12 +229,12 @@ GPrivate Double_t s_cygct()
 
 GPrivate Double_t s_fgct()
 {
-    return (Double_t)(S_JLONG2D(gFGCT) / S_J2D(s_frequency()));
+    return (Double_t)(S_DOUBLE(gFGCT) / s_frequency());
 }
 
 GPrivate Double_t s_afgct()
 {
-    return s_fgct() / S_J2D(s_fgc());
+    return s_fgct() / S_DOUBLE(gFGC);
 }
 
 GPrivate Double_t s_cfgct()
@@ -225,96 +247,173 @@ GPrivate Double_t s_cfgct()
 
 GPrivate Double_t s_gct()
 {
-    return (Double_t)((S_JLONG2D(gYGCT) + S_JLONG2D(gFGCT)) / S_J2D(s_frequency()));
+    return (Double_t)((S_DOUBLE(gYGCT) + S_DOUBLE(gFGCT)) / s_frequency());
 }
 
-GPrivate jlong s_ngcmn()
+GPrivate Double_t s_ngcmn()
 {
-    return S_JLONG(gNGCMN) / 1024;
+    return S_DOUBLE(gNGCMN) / 1024.000;
 }
 
-GPrivate jlong s_ngcmx()
+GPrivate Double_t s_ngcmx()
 {
-    return S_JLONG(gNGCMX) / 1024;
+    return S_DOUBLE(gNGCMX) / 1024.000;
 }
 
-GPrivate jlong s_ngc()
+GPrivate Double_t s_ngc()
 {
-    return S_JLONG(gNGC) / 1024;
+    return S_DOUBLE(gNGC) / 1024.000;
 }
 
-GPrivate jlong s_ogcmn()
+GPrivate Double_t s_ogcmn()
 {
-    return S_JLONG(gOGCMN) / 1024;
+    return S_DOUBLE(gOGCMN) / 1024.000;
 }
 
-GPrivate jlong s_ogcmx()
+GPrivate Double_t s_ogcmx()
 {
-    return S_JLONG(gOGCMX) / 1024;
+    return S_DOUBLE(gOGCMX) / 1024.000;
 }
 
-GPrivate jlong s_ogc()
+GPrivate Double_t s_ogc()
 {
-    return S_JLONG(gOGC) / 1024;
+    return S_DOUBLE(gOGC) / 1024.000;
 }
 
-GPrivate jlong s_pgcmn()
+GPrivate Double_t s_pgcmn()
 {
-    return S_JLONG(gPGCMN) / 1024;
+    return S_DOUBLE(gPGCMN) / 1024.000;
 }
 
-GPrivate jlong s_pgcmx()
+GPrivate Double_t s_pgcmx()
 {
-    return S_JLONG(gPGCMX) / 1024;
+    return S_DOUBLE(gPGCMX) / 1024.000;
 }
 
-GPrivate jlong s_pgc()
+GPrivate Double_t s_pgc()
 {
-    return S_JLONG(gPGC) / 1024;
+    return S_DOUBLE(gPGC) / 1024.000;
 }
 
-#define s_printf gcmon_debug_msg
+GPrivate Double_t s_ygctp()
+{
+    return (Double_t)((1.000 - ((s_gct() - s_ygct()) / s_gct())) * 100.000);
+}
 
-#define S_F "%.3f"
-#define S_L "%lld"
+GPrivate Double_t s_fgctp()
+{
+    return (Double_t)((1.000 - ((s_gct() - s_fgct()) / s_gct())) * 100.000);
+}
 
+GPrivate Double_t s_gctp()
+{
+    return (Double_t)((1.000 - ((s_timstamp() - s_gct()) / s_timstamp())) * 100.000);
+}
+
+#define S_FD 0       //!< Double_t
+#define S_FL 1       //!< jlong
+#define S_FS 2       //!< separator
+
+GPrivate struct
+{
+    String_t szHeader;
+    Int32_t sdwType;
+    union
+    {
+        Double_t(*pfnDouble)();
+        jlong(*pfnJlong)();
+    };
+} gaSout[]=
+{
+    { "Timestamp", S_FD, s_timstamp },
+
+    { NULL, S_FS, NULL },
+
+    { "S0C", S_FD, s_s0c },
+    { "S1C", S_FD, s_s1c },
+    { "EC", S_FD, s_ec },
+    { "OC", S_FD, s_oc },
+    { "PC", S_FD, s_pc },
+
+    { NULL, S_FS, NULL },
+
+    { "S0U", S_FD, s_s0u },
+    { "S0F", S_FD, s_s0f },
+    { "S1U", S_FD, s_s1u },
+    { "S1F", S_FD, s_s1f },
+    { "EU", S_FD, s_eu },
+    { "EF", S_FD, s_ef },
+    { "OU", S_FD, s_ou },
+    { "OF", S_FD, s_of },
+    { "PU", S_FD, s_pu },
+    { "PF", S_FD, s_pf },
+
+    { NULL, S_FS, NULL },
+
+    { "S0P", S_FD, s_s0p },
+    { "S1P", S_FD, s_s1p },
+    { "EP", S_FD, s_ep },
+    { "OP", S_FD, s_op },
+    { "PP", S_FD, s_pp },
+
+    { NULL, S_FS, NULL },
+
+    { "NGCMIN", S_FD, s_ngcmn },
+    { "NGCMAX", S_FD, s_ngcmx },
+    { "NGC", S_FD, s_ngc },
+    { "OGCMIN", S_FD, s_ogcmn },
+    { "OGCMAX", S_FD, s_ogcmx },
+    { "OGC", S_FD, s_ogc },
+    { "PGCMIN", S_FD, s_pgcmn },
+    { "PGCMAX", S_FD, s_pgcmx },
+    { "PGC", S_FD, s_pgc },
+
+    { NULL, S_FS, NULL },
+
+    { "YGC", S_FL, s_ygc },
+    { "YGCT", S_FD, s_ygct },
+    { "AYGCT", S_FD, s_aygct },
+    { "CYGCT", S_FD, s_cygct },
+    { "YGCTP", S_FD, s_ygctp },
+
+    { "FGC", S_FL, s_fgc },
+    { "FGCT", S_FD, s_fgct },
+    { "AFGCT", S_FD, s_afgct },
+    { "CFGCT", S_FD, s_cfgct },
+    { "FGCTP", S_FD, s_fgctp },
+    { "GCT", S_FD, s_gct },
+    { "GCTP", S_FD, s_gctp },
+};
+
+#define s_printf printf
 GPrivate void s_out(String_t szContext)
 {
-    s_printf(szContext);
-    s_printf("Timestamp: "S_F"\t", s_timstamp());
-    s_printf("S0C: "S_L"\t", s_s0c());
-    s_printf("S1C: "S_L"\t", s_s1c());
-    s_printf("S0U: "S_L"\t", s_s0u());
-    s_printf("S1U: "S_L"\t", s_s1u());
-    s_printf("EC: "S_L"\t", s_ec());
-    s_printf("EU: "S_L"\t", s_eu());
-    s_printf("OC: "S_L"\t", s_oc());
-    s_printf("OU: "S_L"\t", s_ou());
-    s_printf("PC: "S_L"\t", s_pc());
-    s_printf("PU: "S_L"\t", s_pu());
-    s_printf("S0P: "S_F"\t", s_s0p());
-    s_printf("S1P: "S_F"\t", s_s1p());
-    s_printf("EP: "S_F"\t", s_ep());
-    s_printf("OP: "S_F"\t", s_op());
-    s_printf("PP: "S_F"\t", s_pp());
-    s_printf("YGC: "S_L"\t", s_ygc());
-    s_printf("FGC: "S_L"\t", s_fgc());
-    s_printf("YGCT: "S_F"\t", s_ygct());
-    s_printf("AYGCT: "S_F"\t", s_aygct());
-    //s_printf("CYGCT: "S_F"\t", s_cygct());
-    s_printf("FGCT: "S_F"\t", s_fgct());
-    s_printf("AFGCT: "S_F"\t", s_afgct());
-    //s_printf("CFGCT: "S_F"\t", s_cfgct());
-    s_printf("GCT: "S_F"\t", s_gct());
-    s_printf("NGCMIN: "S_L"\t", s_ngcmn());
-    s_printf("NGCMAX: "S_L"\t", s_ngcmx());
-    s_printf("NGC: "S_L"\t", s_ngc());
-    s_printf("OGCMIN: "S_L"\t", s_ogcmn());
-    s_printf("OGCMAX: "S_L"\t", s_ogcmx());
-    s_printf("OGC: "S_L"\t", s_ogc());
-    s_printf("PGCMIN: "S_L"\t", s_pgcmn());
-    s_printf("PGCMAX: "S_L"\t", s_pgcmx());
-    s_printf("PGC: "S_L"\t", s_pgc());
+    Int32_t sdwLen = sizeof(gaSout) / sizeof(gaSout[0]);
+    Int32_t i = 0;
+
+    if (szContext != NULL)
+    {
+        s_printf(szContext);
+    }
+
+    for (i = 0; i < sdwLen; i++)
+    {
+        switch (gaSout[i].sdwType)
+        {
+        case S_FD:
+            s_printf("%s: %.3f\t", gaSout[i].szHeader, gaSout[i].pfnDouble());
+            break;
+        case S_FL:
+            s_printf("%s: %lld\t", gaSout[i].szHeader, gaSout[i].pfnJlong());
+            break;
+        case S_FS:
+            s_printf(" | \t");
+            break;
+        default:
+            break;
+        }
+    }
+
     s_printf("\n");
 }
 
