@@ -16,6 +16,9 @@
     <Filter Include="list">
       <UniqueIdentifier>{0b4290b4-96bc-4276-9592-d083497f7546}</UniqueIdentifier>
     </Filter>
+    <Filter Include="status">
+      <UniqueIdentifier>{456f0e63-1a62-437e-ab45-92227348b51c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gcmon\gcmon.c">
@@ -33,6 +36,9 @@
     <ClCompile Include="src\list\list.c">
       <Filter>list</Filter>
     </ClCompile>
+    <ClCompile Include="src\status\status.c">
+      <Filter>status</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\rbtree\rbtree.h">
@@ -49,6 +55,9 @@
     </ClInclude>
     <ClInclude Include="include\list\list.h">
       <Filter>list</Filter>
+    </ClInclude>
+    <ClInclude Include="include\status\status.h">
+      <Filter>status</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

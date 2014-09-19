@@ -3,9 +3,9 @@
 #include "share/share.h"
 #include "utest.h"
 
-GPrivate Int32_t urbd_compare(RBDataP_t pData1, RBDataP_t pData2)
+GPrivate Int32_t urbd_compare(RBDataP_t pSrc, RBDataP_t pDes)
 {
-    return (*(Int32P_t)pData1) - (*(Int32P_t)pData2);
+    return (*(Int32P_t)pSrc) - (*(Int32P_t)pDes);
 }
 
 GPrivate void urbd_free(RBDataP_t pData)

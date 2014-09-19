@@ -15,35 +15,36 @@
 /*                             结构体定义                                 */
 /************************************************************************/
 
-typedef struct tagRBNode RBNode_t, *RBNodeP_t;
+typedef struct RBNode RBNode_t, *RBNodeP_t;
+typedef enum RBColor RBColor_t, *RBColorP_t;
 
 //! 红黑树节点颜色枚举类
-typedef enum tagRBColor
+enum RBColor
 {
     RBC_NONE = 0,                                   //!< 初始化默认色
     RBC_RED,                                        //!< 红色
     RBC_BLACK                                       //!< 黑色
-} RBColor_t, *RBColorP_t;
+};
 
 //! 红黑树节点定义，此定义不对外提供，与此类相关的接口亦不对外提供
-typedef struct tagRBNode
+struct RBNode
 {
     RBColor_t mColor;                               //!< 当前节点颜色
     RBDataP_t pData;                                //!< 当前节点存储的数据，可以使任意类型的指针
     RBNodeP_t pParent;                              //!< 当前节点的父节点
     RBNodeP_t pLeft;                                //!< 当前节点的左子节点
     RBNodeP_t pRight;                               //!< 当前节点的右子节点
-} RBNode_t, *RBNodeP_t;
+};
 
 //! 红黑树定义，此定义不对外提供，与此类型相关的接口仅提供部分必须的
-typedef struct tagRBTree 
+struct RBTree
 {
     RBNodeP_t pRoot;                                //!< 红黑树的跟节点
     Count32_t dwCount;                              //!< 红黑树节点个数
     Int32_t (*pfnCompare)(RBDataP_t, RBDataP_t);    //!< 红黑树节点所存储的数据的比较函数
     void (*pfnFree)(RBDataP_t);                     //!< 红黑树节点所存储的数据的空间释放函数
     RBDataP_t(*pfnCombiner)(RBDataP_t, RBDataP_t);  //!< 红黑树节点所存储的数据的连接函数
-}RBTree_t, *RBTreeP_t;
+};
 
 #define RBNODE_SIZE sizeof(RBNode_t)
 #define RBTREE_SIZE sizeof(RBTree_t)
@@ -543,9 +544,9 @@ GPublic void rbtree_free(RBTreeP_t pTree)
 {
     GCMON_CHECK_NULL(pTree, ERROR);
     rbnode_free_tree(pTree->pRoot, pTree->pfnFree);
+    GFREE(pTree);
 
 ERROR:
-    GFREE(pTree);
     return;
 }
 

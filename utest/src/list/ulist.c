@@ -3,9 +3,9 @@
 #include "share/share.h"
 #include "utest.h"
 
-GPrivate Int32_t uld_compare(LDataP_t pData1, LDataP_t  pData2)
+GPrivate Int32_t uld_compare(LDataP_t pSrc, LDataP_t  pDes)
 {
-    return (*(Int32P_t)pData1) - (*(Int32P_t)pData2);
+    return (*(Int32P_t)pSrc) - (*(Int32P_t)pDes);
 }
 
 
@@ -91,7 +91,7 @@ GPublic void utest_list()
 {
     ListP_t pList = NULL;
     Int32_t i = 0;
-    Int32_t sdwCount = 10240;
+    Int32_t sdwCount = 1024;
 
     gcmon_debug_fopen();
 
@@ -175,12 +175,27 @@ GPublic void utest_list()
     gcmon_debug_fclose();
 }
 
+GPrivate void utest_strcmp()
+{
+    Int32_t sdwCompare = 0;
+
+    sdwCompare = (Int32_t)strcmp(NULL, NULL);
+    sdwCompare = (Int32_t)strcmp(NULL, "");
+    sdwCompare = (Int32_t)strcmp("", NULL);
+    sdwCompare = (Int32_t)strcmp("", "");
+    sdwCompare = (Int32_t)strcmp("", "  ");
+    sdwCompare = (Int32_t)strcmp(" ", "  ");
+    sdwCompare = (Int32_t)strcmp("  ", "");
+    sdwCompare = (Int32_t)strcmp("  ", " ");
+}
+
 GPublic void utest_list_run()
 {
     UItem_t aItems[] =
     {
         { 0, TRUE, NULL, NULL, "返回上一级菜单" },
-        { 1, TRUE, utest_list, NULL, "测试链表" }
+        { 1, TRUE, utest_list, NULL, "测试链表" },
+        { 2, TRUE, utest_strcmp, NULL, "测试strcmp" },
     };
 
     utest_run(aItems, ARRAY_SIZE(aItems));

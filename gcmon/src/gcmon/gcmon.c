@@ -9,6 +9,7 @@
 
 #include "share/share.h"
 #include "perf/perf.h"
+#include "status/status.h"
 
 GPrivate jvmtiEnv *gpJvmtiEnv = NULL;               //!< JVMTI开发环境
 GPrivate jvmtiEnv gJvmtiEnv = NULL;                 //!< gJvmtiEnv = *gpJvmtiEnv;
@@ -19,6 +20,7 @@ GPrivate jrawMonitorID gMonitorID = NULL;           //!< 管程变量，用于同步
 typedef jobject(JNICALL *Perf_Attach_t)(JNIEnv *, jobject, jstring, int, int);
 GPrivate Perf_Attach_t gfnPerf_Attach = NULL;       //!< jvm动态库中Perf_Attach接口的地址
 GPrivate void *gPerfMemory = NULL;                  //!< 用于存放JVM性能计数器的共享内存区的地址
+GPrivate RBTreeP_t gpPerfTree = NULL;               //!< 通过pPerfMemory构建的性能树
 
 //! 用于处理java.lang.OutOfMemoryError异常
 #define GOOM_HEAP_SPACE 0                           //!< Java heap space
@@ -65,6 +67,24 @@ GPrivate void GetPerfMemoryAddress(jvmtiEnv *jvmti_env, JNIEnv* jni_env)
         jobject buf = gfnPerf_Attach(jni_env, NULL, NULL, 0, 0);
 
         gPerfMemory = (*jni_env)->GetDirectBufferAddress(jni_env, buf);
+    }
+}
+
+/*!
+*@brief        通过gPerfMemory构建性能树
+*@author       zhaohm3
+*@retval
+*@note
+* 
+*@since    2014-9-18 16:49
+*@attention
+* 
+*/
+GPrivate void BuildPerfMemoryTree()
+{
+    if (gPerfMemory != NULL && NULL == gpPerfTree)
+    {
+        gpPerfTree = pdi_build_tree(gPerfMemory);
     }
 }
 
@@ -161,24 +181,6 @@ GPrivate void JNICALL ExceptionEvent(jvmtiEnv *jvmti_env,
     jlocation catch_location)
 {
     GCMON_PRINT_FUNC();
-    {
-        String_t szName = NULL;
-        String_t szSig = NULL;
-        String_t szGsig = NULL;
-        jvmtiError error = JVMTI_ERROR_NONE;
-        error = gJvmtiEnv->GetMethodName(gpJvmtiEnv, method, &szName, &szSig, &szGsig);
-        printf("%s \t method name = %s \t sig = %s \t gsig = %s \n", __FUNCTION__, szName, szSig, szGsig);
-        gJvmtiEnv->Deallocate(gpJvmtiEnv, szName);
-        gJvmtiEnv->Deallocate(gpJvmtiEnv, szSig);
-        gJvmtiEnv->Deallocate(gpJvmtiEnv, szGsig);
-
-        szName = szSig = szGsig = NULL;
-        error = gJvmtiEnv->GetMethodName(gpJvmtiEnv, catch_method, &szName, &szSig, &szGsig);
-        printf("%s \t catch_method name = %s \t sig = %s \t gsig = %s \n", __FUNCTION__, szName, szSig, szGsig);
-        gJvmtiEnv->Deallocate(gpJvmtiEnv, szName);
-        gJvmtiEnv->Deallocate(gpJvmtiEnv, szSig);
-        gJvmtiEnv->Deallocate(gpJvmtiEnv, szGsig);
-    }
 }
 
 /*!
@@ -205,17 +207,6 @@ GPrivate void JNICALL CatchExceptionEvent(jvmtiEnv *jvmti_env,
     jobject exception)
 {
     GCMON_PRINT_FUNC();
-    {
-        String_t szName = NULL;
-        String_t szSig = NULL;
-        String_t szGsig = NULL;
-        jvmtiError error = JVMTI_ERROR_NONE;
-        error = gJvmtiEnv->GetMethodName(gpJvmtiEnv, method, &szName, &szSig, &szGsig);
-        printf("%s \t method name = %s \t sig = %s \t gsig = %s \n", __FUNCTION__, szName, szSig, szGsig);
-        gJvmtiEnv->Deallocate(gpJvmtiEnv, szName);
-        gJvmtiEnv->Deallocate(gpJvmtiEnv, szSig);
-        gJvmtiEnv->Deallocate(gpJvmtiEnv, szGsig);
-    }
 }
 
 /*!
@@ -346,6 +337,18 @@ GPrivate void JNICALL StartGarbageCollection(jvmtiEnv *jvmti_env)
 {
     GCMON_PRINT_FUNC();
     perf_memory_analyze(gPerfMemory);
+
+    if (NULL == gpPerfTree)
+    {
+        //! 通过gPerfMemory构建性能树
+        GASSERT(NULL == gpPerfTree);
+        BuildPerfMemoryTree();
+
+        GASSERT(gpPerfTree != NULL);
+        status_init(gpPerfTree);
+    }
+
+    status_sample("Start  GC ");
 }
 
 /*!
@@ -363,6 +366,7 @@ GPrivate void JNICALL FinishGarbageCollection(jvmtiEnv *jvmti_env)
 {
     GCMON_PRINT_FUNC();
     perf_memory_analyze(gPerfMemory);
+    status_sample("Finish GC ");
 }
 
 /*!
@@ -437,11 +441,13 @@ GPrivate void ZeroCallbacks()
 GPrivate void InitCallbacks()
 {
     ZeroCallbacks();
-    /*gCallbacks.VMInit = InitVM;
+    /*!
+    gCallbacks.VMInit = InitVM;
     gCallbacks.VMStart = StartVM;
     gCallbacks.Exception = ExceptionEvent;
     gCallbacks.ExceptionCatch = CatchExceptionEvent;
-    gCallbacks.MethodEntry = EntryMethod;*/
+    gCallbacks.MethodEntry = EntryMethod;
+    */
     gCallbacks.NativeMethodBind = BindNativeMethod;
     gCallbacks.ResourceExhausted = ResourceExhaustedEvent;
     gCallbacks.GarbageCollectionStart = StartGarbageCollection;
@@ -574,7 +580,7 @@ JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *jvm, char *options, void *reserved)
     return JNI_OK;
 
 ERROR:
-    ClearJvmtiEnv();;
+    ClearJvmtiEnv();
     return JNI_ERR;
 }
 
@@ -593,5 +599,6 @@ JNIEXPORT void JNICALL Agent_OnUnload(JavaVM *vm)
 {
     GCMON_PRINT_FUNC();
     ClearJvmtiEnv();
+    rbtree_free(gpPerfTree);
     gcmon_debug_fclose();
 }

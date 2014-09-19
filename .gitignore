@@ -12,3 +12,4 @@
 *.dll
 *.exp
 utest/gcmon_debug.txt
+gcmon/gcmon_debug.txt

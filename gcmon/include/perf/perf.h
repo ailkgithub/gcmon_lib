@@ -11,13 +11,17 @@
 #define _perf_h__
 
 #include "share/share.h"
+#include "rbtree/rbtree.h"
 
-typedef struct tagPerfDataPrologue PerfDataPrologue_t, *PerfDataPrologueP_t;
-typedef struct tagPerfDataEntry PerfDataEntry_t, *PerfDataEntryP_t;
-typedef enum tagBasicType BasicType_t, *BasicTypeP_t;
-typedef enum tagVariability Variability_t, *VariabilityP_t;
-typedef enum tagUnits Units_t, *UnitsP_t;
-typedef enum tagFlags Flags_t, *FlagsP_t;
+typedef struct PerfDataItem PerfDataItem_t, *PerfDataItemP_t;
+
+GPublic RBTreeP_t pdi_build_tree(void *pPerfMemory);
+GPublic PerfDataItemP_t pdi_search_item(RBTreeP_t pTree, String_t szName);
+
+GPublic jlong pdi_get_jlong(PerfDataItemP_t pItem);
+GPublic Double_t pdi_get_double(PerfDataItemP_t pItem);
+GPublic String_t pdi_get_string(PerfDataItemP_t pItem);
+GPublic Addr_t pdi_get_addr(PerfDataItemP_t pItem);
 
 GPublic void perf_memory_analyze(void *address);
 

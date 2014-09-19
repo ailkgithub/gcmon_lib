@@ -13,7 +13,7 @@
 #include "share/share.h"
 
 typedef Any_t LData_t, *LDataP_t;
-typedef struct tagList List_t, *ListP_t;
+typedef struct List List_t, *ListP_t;
 
 GPublic ListP_t list_new();
 GPublic void list_free(ListP_t pList);

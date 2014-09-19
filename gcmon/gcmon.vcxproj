@@ -32,6 +32,7 @@
     <ClCompile Include="src\perf\perf.c" />
     <ClCompile Include="src\rbtree\rbtree.c" />
     <ClCompile Include="src\share\share.c" />
+    <ClCompile Include="src\status\status.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\list\list.h" />
@@ -39,6 +40,7 @@
     <ClInclude Include="include\rbtree\rbtree.h" />
     <ClInclude Include="include\share\share.h" />
     <ClInclude Include="include\share\type.h" />
+    <ClInclude Include="include\status\status.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9C5DC614-5DB0-43CB-AC1B-2FC175680DB5}</ProjectGuid>

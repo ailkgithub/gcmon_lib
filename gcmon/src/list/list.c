@@ -13,25 +13,25 @@
 /*                             结构体定义                                 */
 /************************************************************************/
 
-typedef struct tagLNode LNode_t, *LNodeP_t;
+typedef struct LNode LNode_t, *LNodeP_t;
 
 //! 链表节点定义，节点可以存储任意类型，与此节点相关的接口不对外提供
-typedef struct tagLNode
+struct LNode
 {
     LDataP_t pData;                             //!< 节点存储的数据
     LNodeP_t pPrev;                             //!< 前一个节点
     LNodeP_t pNext;                             //!< 下一个节点
-}LNode_t, *LNodeP_t;
+};
 
 //! 双向链表定义，与链表相关的接口与，仅仅部分对外提供
-typedef struct tagList
+struct List
 {
     LNodeP_t pHead;                             //!< 链表头
     LNodeP_t pTail;                             //!< 链表尾
     Count32_t dwCount;                          //!< 链表存储的节点个数
     Int32_t(*pfnCompare)(LDataP_t, LDataP_t);   //!< 链表节点所存储的数据的比较函数
     void(*pfnFree)(LDataP_t);                   //!< 链表节点所存储的数据的空间释放函数
-}List_t, *ListP_t;
+};
 
 #define LNODE_SIZE sizeof(LNode_t)
 #define LIST_SIZE sizeof(List_t)
