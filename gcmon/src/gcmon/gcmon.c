@@ -9,7 +9,7 @@
 
 #include "share/share.h"
 #include "perf/perf.h"
-#include "status/status.h"
+#include "sample/sample.h"
 
 GPrivate jvmtiEnv *gpJvmtiEnv = NULL;               //!< JVMTI开发环境
 GPrivate jvmtiEnv gJvmtiEnv = NULL;                 //!< gJvmtiEnv = *gpJvmtiEnv;
@@ -19,7 +19,7 @@ GPrivate jrawMonitorID gMonitorID = NULL;           //!< 管程变量，用于同步
 
 typedef jobject(JNICALL *Perf_Attach_t)(JNIEnv *, jobject, jstring, int, int);
 GPrivate Perf_Attach_t gfnPerf_Attach = NULL;       //!< jvm动态库中Perf_Attach接口的地址
-GPrivate void *gPerfMemory = NULL;                  //!< 用于存放JVM性能计数器的共享内存区的地址
+GPrivate Addr_t gPerfMemory = NULL;                  //!< 用于存放JVM性能计数器的共享内存区的地址
 GPrivate RBTreeP_t gpPerfTree = NULL;               //!< 通过pPerfMemory构建的性能树
 
 //! 用于处理java.lang.OutOfMemoryError异常
@@ -66,7 +66,7 @@ GPrivate void GetPerfMemoryAddress(jvmtiEnv *jvmti_env, JNIEnv* jni_env)
     {
         jobject buf = gfnPerf_Attach(jni_env, NULL, NULL, 0, 0);
 
-        gPerfMemory = (*jni_env)->GetDirectBufferAddress(jni_env, buf);
+        gPerfMemory = (Addr_t)(*jni_env)->GetDirectBufferAddress(jni_env, buf);
     }
 }
 
@@ -345,10 +345,10 @@ GPrivate void JNICALL StartGarbageCollection(jvmtiEnv *jvmti_env)
         BuildPerfMemoryTree();
 
         GASSERT(gpPerfTree != NULL);
-        status_init(gpPerfTree);
+        sample_init(gpPerfTree);
     }
 
-    status_sample("Start  GC ");
+    sample_doit("Start  GC ");
 }
 
 /*!
@@ -366,7 +366,7 @@ GPrivate void JNICALL FinishGarbageCollection(jvmtiEnv *jvmti_env)
 {
     /*GCMON_PRINT_FUNC();*/
     perf_memory_analyze(gPerfMemory);
-    status_sample("Finish GC ");
+    sample_doit("Finish GC ");
 }
 
 /*!

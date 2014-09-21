@@ -8,7 +8,6 @@
  ****************************************************************/
 
 #include "share/share.h"
-#include <stdarg.h>
 
 //! 记录调试信息
 GPrivate FILE *gFile = NULL;

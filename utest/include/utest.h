@@ -10,10 +10,9 @@
 #ifndef _utest_h__
 #define _utest_h__
 
-#include "share/type.h"
 #include "share/share.h"
 
-typedef struct UItem UItem_t, *UItemP_t;
+GTYPES(UItem);
 struct UItem
 {
     Int32_t     sdwId;          //!< µ¥Ôª²âÊÔº¯ÊýIDºÅ

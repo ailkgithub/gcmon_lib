@@ -16,7 +16,7 @@
 typedef Any_t RBData_t, *RBDataP_t;
 
 //! 红黑树类型定义，对外仅仅提供类型名称，不提供类型的具体实现
-typedef struct RBTree RBTree_t, *RBTreeP_t;
+GTYPES(RBTree);
 
 //! 创建一颗空的红黑树
 GPublic RBTreeP_t rbtree_new();

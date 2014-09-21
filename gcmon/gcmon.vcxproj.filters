@@ -16,7 +16,10 @@
     <Filter Include="list">
       <UniqueIdentifier>{0b4290b4-96bc-4276-9592-d083497f7546}</UniqueIdentifier>
     </Filter>
-    <Filter Include="status">
+    <Filter Include="os">
+      <UniqueIdentifier>{c3188db9-ccac-463b-b6ec-5513b51ba090}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sample">
       <UniqueIdentifier>{456f0e63-1a62-437e-ab45-92227348b51c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -36,16 +39,16 @@
     <ClCompile Include="src\list\list.c">
       <Filter>list</Filter>
     </ClCompile>
-    <ClCompile Include="src\status\status.c">
-      <Filter>status</Filter>
+    <ClCompile Include="src\sample\sample.c">
+      <Filter>sample</Filter>
+    </ClCompile>
+    <ClCompile Include="src\os\mem.c">
+      <Filter>os</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\rbtree\rbtree.h">
       <Filter>rbtree</Filter>
-    </ClInclude>
-    <ClInclude Include="include\share\type.h">
-      <Filter>share</Filter>
     </ClInclude>
     <ClInclude Include="include\share\share.h">
       <Filter>share</Filter>
@@ -56,8 +59,14 @@
     <ClInclude Include="include\list\list.h">
       <Filter>list</Filter>
     </ClInclude>
-    <ClInclude Include="include\status\status.h">
-      <Filter>status</Filter>
+    <ClInclude Include="include\sample\sample.h">
+      <Filter>sample</Filter>
+    </ClInclude>
+    <ClInclude Include="include\os\mem.h">
+      <Filter>os</Filter>
+    </ClInclude>
+    <ClInclude Include="include\os\type.h">
+      <Filter>os</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

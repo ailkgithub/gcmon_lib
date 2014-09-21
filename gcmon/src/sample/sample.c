@@ -1,57 +1,65 @@
+/*!**************************************************************
+ *@file sample.c
+ *@brief    对PerfMemory的指定项进行数据采样的相关接口实现
+ *@author   zhaohm3
+ *@date 2014-9-20 20:12
+ *@note
+ * 
+ ****************************************************************/
 
-#include "status/status.h"
+#include "sample/sample.h"
 #include "perf/perf.h"
 
-typedef struct Status Status_t, *StatusP_t;
 
-struct Status
+GTYPES(SampleItem);
+struct SampleItem
 {
     String_t szHeader;
     String_t szReference;
     PerfDataItemP_t pItem;
 };
 
-GPrivate Status_t gTicks = {"Timestamp", "sun.os.hrt.ticks", NULL };
-GPrivate Status_t gFrequency = {"Timestamp", "sun.os.hrt.frequency", NULL };
+GPrivate SampleItem_t gTicks = { "Timestamp", "sun.os.hrt.ticks", NULL };
+GPrivate SampleItem_t gFrequency = { "Timestamp", "sun.os.hrt.frequency", NULL };
 
-GPrivate Status_t gS0C = { "S0C", "sun.gc.generation.0.space.1.capacity", NULL };
-GPrivate Status_t gS1C = { "S1C", "sun.gc.generation.0.space.2.capacity", NULL };
+GPrivate SampleItem_t gS0C = { "S0C", "sun.gc.generation.0.space.1.capacity", NULL };
+GPrivate SampleItem_t gS1C = { "S1C", "sun.gc.generation.0.space.2.capacity", NULL };
 
-GPrivate Status_t gS0U = { "S0U", "sun.gc.generation.0.space.1.used", NULL };
-GPrivate Status_t gS1U = { "S1U", "sun.gc.generation.0.space.2.used", NULL };
+GPrivate SampleItem_t gS0U = { "S0U", "sun.gc.generation.0.space.1.used", NULL };
+GPrivate SampleItem_t gS1U = { "S1U", "sun.gc.generation.0.space.2.used", NULL };
 
-GPrivate Status_t gEC = { "EC", "sun.gc.generation.0.space.0.capacity", NULL };
-GPrivate Status_t gEU = { "EU", "sun.gc.generation.0.space.0.used", NULL };
+GPrivate SampleItem_t gEC = { "EC", "sun.gc.generation.0.space.0.capacity", NULL };
+GPrivate SampleItem_t gEU = { "EU", "sun.gc.generation.0.space.0.used", NULL };
 
-GPrivate Status_t gOC = { "OC", "sun.gc.generation.1.space.0.capacity", NULL };
-GPrivate Status_t gOU = { "OU", "sun.gc.generation.1.space.0.used", NULL };
+GPrivate SampleItem_t gOC = { "OC", "sun.gc.generation.1.space.0.capacity", NULL };
+GPrivate SampleItem_t gOU = { "OU", "sun.gc.generation.1.space.0.used", NULL };
 
-GPrivate Status_t gPC = { "PC", "sun.gc.generation.2.space.0.capacity", NULL };
-GPrivate Status_t gPU = { "PU", "sun.gc.generation.2.space.0.used", NULL };
+GPrivate SampleItem_t gPC = { "PC", "sun.gc.generation.2.space.0.capacity", NULL };
+GPrivate SampleItem_t gPU = { "PU", "sun.gc.generation.2.space.0.used", NULL };
 
-GPrivate Status_t gNGCMN = { "NGCMN", "sun.gc.generation.0.minCapacity", NULL };
-GPrivate Status_t gNGCMX = { "NGCMX", "sun.gc.generation.0.maxCapacity", NULL };
-GPrivate Status_t gNGC = { "NGC", "sun.gc.generation.0.capacity", NULL };
+GPrivate SampleItem_t gNGCMN = { "NGCMN", "sun.gc.generation.0.minCapacity", NULL };
+GPrivate SampleItem_t gNGCMX = { "NGCMX", "sun.gc.generation.0.maxCapacity", NULL };
+GPrivate SampleItem_t gNGC = { "NGC", "sun.gc.generation.0.capacity", NULL };
 
-GPrivate Status_t gOGCMN = { "OGCMN", "sun.gc.generation.1.minCapacity", NULL };
-GPrivate Status_t gOGCMX = { "OGCMX", "sun.gc.generation.1.maxCapacity", NULL };
-GPrivate Status_t gOGC = { "OGC", "sun.gc.generation.1.capacity", NULL };
+GPrivate SampleItem_t gOGCMN = { "OGCMN", "sun.gc.generation.1.minCapacity", NULL };
+GPrivate SampleItem_t gOGCMX = { "OGCMX", "sun.gc.generation.1.maxCapacity", NULL };
+GPrivate SampleItem_t gOGC = { "OGC", "sun.gc.generation.1.capacity", NULL };
 
-GPrivate Status_t gPGCMN = { "PGCMN", "sun.gc.generation.2.minCapacity", NULL };
-GPrivate Status_t gPGCMX = { "PGCMX", "sun.gc.generation.2.maxCapacity", NULL };
-GPrivate Status_t gPGC = { "PGC", "sun.gc.generation.2.capacity", NULL };
+GPrivate SampleItem_t gPGCMN = { "PGCMN", "sun.gc.generation.2.minCapacity", NULL };
+GPrivate SampleItem_t gPGCMX = { "PGCMX", "sun.gc.generation.2.maxCapacity", NULL };
+GPrivate SampleItem_t gPGC = { "PGC", "sun.gc.generation.2.capacity", NULL };
 
-GPrivate Status_t gYGC = { "YGC", "sun.gc.collector.0.invocations", NULL };
-GPrivate Status_t gFGC = { "FGC", "sun.gc.collector.1.invocations", NULL };
+GPrivate SampleItem_t gYGC = { "YGC", "sun.gc.collector.0.invocations", NULL };
+GPrivate SampleItem_t gFGC = { "FGC", "sun.gc.collector.1.invocations", NULL };
 
-GPrivate Status_t gYGCT = { "YGCT", "sun.gc.collector.0.time", NULL };
-GPrivate Status_t gFGCT = { "FGCT", "sun.gc.collector.1.time", NULL };
+GPrivate SampleItem_t gYGCT = { "YGCT", "sun.gc.collector.0.time", NULL };
+GPrivate SampleItem_t gFGCT = { "FGCT", "sun.gc.collector.1.time", NULL };
 
 GPrivate Double_t gdfPrevYGCT = 0.000;
 GPrivate Double_t gdfPrevFGCT = 0.000;
 
 #define S_ITEM(s) s.pItem = pdi_search_item(pTree, s.szReference)
-GPublic void status_init(RBTreeP_t pTree)
+GPublic void sample_init(RBTreeP_t pTree)
 {
     S_ITEM(gTicks);
     S_ITEM(gFrequency);
@@ -417,7 +425,7 @@ GPrivate void s_out(String_t szContext)
     s_printf("\n");
 }
 
-GPublic void status_sample(String_t szContext)
+GPublic void sample_doit(String_t szContext)
 {
     s_out(szContext);
 }

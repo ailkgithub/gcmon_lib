@@ -14,9 +14,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <stdarg.h>
 
 #include "hotspot/jvmti.h"
-#include "share/type.h"
+#include "os/type.h"
 
 //! 标记私有接口，不对外提供
 #define GPrivate static
@@ -99,5 +100,8 @@ do                                                          \
 
 //! 断言重定义
 #define GASSERT assert
+
+#define GTYPES(type) typedef struct type type##_t, *##type##P_t
+#define GTYPEE(type) typedef enum type type##_t, *##type##P_t
 
 #endif

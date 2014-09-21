@@ -1,0 +1,34 @@
+/*!**************************************************************
+ *@file mem.h
+ *@brief    提供与操作系统无关的内存信息获取接口
+ *@author   zhaohm3
+ *@date 2014-9-20 20:14
+ *@note
+ * 
+ ****************************************************************/
+
+#ifndef _mem_h__
+#define _mem_h__
+
+#include "share/share.h"
+
+//! 计算机的物理内存信息
+GTYPES(PhysicalMemoryInfo);
+struct PhysicalMemoryInfo
+{
+    Size64_t lwTotalPhys;                   //!< 计算机当前物理内存大小，单位(Byte)
+    Size64_t lwAvailPhys;                   //!< 计算机当前可用物理内存大小，单位(Byte)
+};
+
+//! 进程当前的内存信息
+GTYPES(ProccessMemoryInfo);
+struct ProccessMemoryInfo
+{
+    Size64_t lwPhysicalSize;                //!< 进程所占用的物理内存大小，单位(Byte)
+    Size64_t lwVirtualSize;                 //!< 进程所占用的虚拟内存大小，单位(Byte)
+};
+
+GPublic Bool32_t os_get_physical_memory_info(PhysicalMemoryInfoP_t pMemoryInfo);
+GPublic Bool32_t os_get_process_memory_info(ProccessMemoryInfoP_t pMemoryInfo);
+
+#endif

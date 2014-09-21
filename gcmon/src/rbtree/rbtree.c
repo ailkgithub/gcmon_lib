@@ -15,8 +15,8 @@
 /*                             结构体定义                                 */
 /************************************************************************/
 
-typedef struct RBNode RBNode_t, *RBNodeP_t;
-typedef enum RBColor RBColor_t, *RBColorP_t;
+GTYPES(RBNode);
+GTYPEE(RBColor);
 
 //! 红黑树节点颜色枚举类
 enum RBColor

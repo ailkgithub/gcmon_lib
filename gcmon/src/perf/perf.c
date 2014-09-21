@@ -9,12 +9,12 @@
 
 #include "perf/perf.h"
 
-typedef struct PerfDataPrologue PerfDataPrologue_t, *PerfDataPrologueP_t;
-typedef struct PerfDataEntry PerfDataEntry_t, *PerfDataEntryP_t;
-typedef enum BasicType BasicType_t, *BasicTypeP_t;
-typedef enum Variability Variability_t, *VariabilityP_t;
-typedef enum Units Units_t, *UnitsP_t;
-typedef enum Flags Flags_t, *FlagsP_t;
+GTYPES(PerfDataPrologue);
+GTYPES(PerfDataEntry);
+GTYPEE(BasicType);
+GTYPEE(Variability);
+GTYPEE(Units);
+GTYPEE(Flags);
 
 //! 检测Hotspot的PerfDataEntry的内容变化
 #define PERFDATA_MAJOR_VERSION 2
@@ -458,7 +458,7 @@ GPublic String_t pdi_get_string(PerfDataItemP_t pItem)
 *@attention
 * 
 */
-GPublic Addr_t pdi_get_addr(PerfDataItemP_t pItem)
+GPublic Addr_t pdi_get_other(PerfDataItemP_t pItem)
 {
     GASSERT(pItem != NULL);
     return pItem->pValue;
@@ -476,7 +476,7 @@ GPublic Addr_t pdi_get_addr(PerfDataItemP_t pItem)
 *@attention
 * 
 */
-GPublic RBTreeP_t pdi_build_tree(void *pPerfMemory)
+GPublic RBTreeP_t pdi_build_tree(Addr_t pPerfMemory)
 {
     RBTreeP_t pTree = NULL;
     PerfDataPrologueP_t pPerf = NULL;
@@ -531,10 +531,12 @@ ERROR:
 }
 
 GPrivate Int32_t gCounter = 0;
-GPublic void perf_memory_analyze(void *address)
+GPublic void perf_memory_analyze(Addr_t address)
 {
     PerfDataPrologueP_t pPerf = (PerfDataPrologueP_t)address;
     RBTreeP_t pTree = NULL;
+    /*os_get_physical_memory_info(NULL);
+    os_get_process_memory_info(NULL);*/
 
     if (pPerf != NULL)
     {
