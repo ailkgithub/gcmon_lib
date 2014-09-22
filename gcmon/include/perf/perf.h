@@ -23,6 +23,6 @@ GPublic Double_t pdi_get_double(PerfDataItemP_t pItem);
 GPublic String_t pdi_get_string(PerfDataItemP_t pItem);
 GPublic Addr_t pdi_get_other(PerfDataItemP_t pItem);
 
-GPublic void perf_memory_analyze(Addr_t address);
+GPublic void perf_print_verbose(Addr_t address);
 
 #endif

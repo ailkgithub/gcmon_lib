@@ -241,6 +241,45 @@ ERROR:
 }
 
 /*!
+*@brief        根据data_offset获取PerfDataEntry_t中的jlong性能项数据
+*@author       zhaohm3
+*@param[in]    pEntry
+*@retval
+*@note
+* 
+*@since    2014-9-22 17:51
+*@attention
+* 
+*/
+GPrivate jlong pde_get_long(PerfDataEntryP_t pEntry)
+{
+    jlong lwValue = 0;
+    Addr_t pData = pde_get_data(pEntry);
+
+    GCMON_CHECK_NULL(pData, ERROR);
+    lwValue = *(jlong *)pData;
+
+ERROR:
+    return lwValue;
+}
+
+/*!
+*@brief        根据data_offset获取PerfDataEntry_t中的jbyte性能项数据
+*@author       zhaohm3
+*@param[in]    pEntry
+*@retval
+*@note
+* 
+*@since    2014-9-22 17:51
+*@attention
+* 
+*/
+GPrivate String_t pde_get_string(PerfDataEntryP_t pEntry)
+{
+    return (String_t)pde_get_data(pEntry);
+}
+
+/*!
 *@brief        清空PerfDataItem_t
 *@author       zhaohm3
 *@param[in]    pItem
@@ -530,11 +569,20 @@ ERROR:
     return pItem;
 }
 
-GPrivate Int32_t gCounter = 0;
-GPublic void perf_memory_analyze(Addr_t address)
+/*!
+*@brief        打印pPerfMemory中的性能计数器的详细信息
+*@author       zhaohm3
+*@param[in]    address
+*@retval
+*@note
+* 
+*@since    2014-9-22 17:54
+*@attention
+* 
+*/
+GPublic void perf_print_verbose(Addr_t address)
 {
     PerfDataPrologueP_t pPerf = (PerfDataPrologueP_t)address;
-    RBTreeP_t pTree = NULL;
 
     if (pPerf != NULL)
     {
@@ -542,40 +590,29 @@ GPublic void perf_memory_analyze(Addr_t address)
         CharP_t pCurr = (CharP_t)(((CharP_t)(address)) + pPerf->entry_offset);
 
         GASSERT(pPerf->entry_offset == sizeof(PerfDataPrologue_t));
-        pTree = pdi_build_tree(address);
 
         for (i = 0; i < pPerf->num_entries; i++)
         {
             PerfDataEntryP_t pEntry = (PerfDataEntryP_t)pCurr;
             String_t szName = pde_get_name(pEntry);
-            PerfDataItemP_t pItem = NULL;
 
-            pCurr += pEntry->entry_length;
-            pItem = pdi_search_item(pTree, szName);
-
-            if (4 == gCounter)
+            switch (pEntry->data_type)
             {
-                switch (pItem->byType)
-                {
-                case 'B':
-                    gcmon_debug_msg("%s --> %s --> %s \n",
-                        szName, char2name(pItem->byType),
-                        pdi_get_string(pItem));
-                    break;
-                case 'J':
-                    gcmon_debug_msg("%s --> %s --> %lld \n",
-                        szName, char2name(pItem->byType),
-                        pdi_get_jlong(pItem));
-                    break;
-                default:
-                    gcmon_debug_msg("%s --> %s \n", szName, char2name(pItem->byType));
-                    break;
-                }
+            case 'B':
+                gcmon_debug_msg("%s --> %s --> %s \n",
+                    szName, char2name(pEntry->data_type),
+                    pde_get_string(pEntry));
+                break;
+            case 'J':
+                gcmon_debug_msg("%s --> %s --> %lld \n",
+                    szName, char2name(pEntry->data_type),
+                    pde_get_long(pEntry));
+                break;
+            default:
+                gcmon_debug_msg("%s --> %s \n", szName, char2name(pEntry->data_type));
+                break;
             }
+            pCurr += pEntry->entry_length;
         }
-
-        gCounter = (gCounter > 20) ? 20 : gCounter + 1;
-        rbtree_free(pTree);
-        gcmon_debug_flush();
     }
 }

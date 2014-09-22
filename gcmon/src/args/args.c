@@ -184,7 +184,7 @@ GPublic Size64_t vmargs_parse_InitialHeapSize(String_t szVmArgs, StringP_t pszAr
 
 GPublic Size64_t vmargs_parse_MaxHeapSize(String_t szVmArgs, StringP_t pszArgs)
 {
-    return vmargs_parse_final_size(szVmArgs, "-Xmx", "-XX:InitialHeapSize=", pszArgs);
+    return vmargs_parse_final_size(szVmArgs, "-Xmx", "-XX:MaxHeapSize=", pszArgs);
 }
 
 GPublic Size64_t vmargs_parse_NewSize(String_t szVmArgs, StringP_t pszArgs)
