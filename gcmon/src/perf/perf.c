@@ -371,8 +371,8 @@ GPrivate Int32_t pdi_compare(PerfDataItemP_t pSrc, PerfDataItemP_t pDes)
     String_t szDesName = NULL;
     Int32_t sdwCompare = 0;
 
-    GCMON_CHECK_CONDITION(pSrc != NULL && pDes != NULL, ERROR);
-    GCMON_CHECK_CONDITION(pSrc->szName != NULL || pDes->szName != NULL, ERROR);
+    GCMON_CHECK_COND(pSrc != NULL && pDes != NULL, ERROR);
+    GCMON_CHECK_COND(pSrc->szName != NULL || pDes->szName != NULL, ERROR);
 
     szSrcName = pSrc->szName;
     szDesName = pDes->szName;
@@ -535,8 +535,6 @@ GPublic void perf_memory_analyze(Addr_t address)
 {
     PerfDataPrologueP_t pPerf = (PerfDataPrologueP_t)address;
     RBTreeP_t pTree = NULL;
-    /*os_get_physical_memory_info(NULL);
-    os_get_process_memory_info(NULL);*/
 
     if (pPerf != NULL)
     {
@@ -555,7 +553,7 @@ GPublic void perf_memory_analyze(Addr_t address)
             pCurr += pEntry->entry_length;
             pItem = pdi_search_item(pTree, szName);
 
-            if (2 == gCounter)
+            if (4 == gCounter)
             {
                 switch (pItem->byType)
                 {

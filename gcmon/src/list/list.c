@@ -494,7 +494,7 @@ GPrivate ListP_t list_remove_node(ListP_t pList, LNodeP_t pNode)
 {
     GCMON_CHECK_NULL(pList, ERROR);
     GCMON_CHECK_NULL(pNode, ERROR);
-    GCMON_CHECK_CONDITION(pList->dwCount != 0, ERROR);
+    GCMON_CHECK_COND(pList->dwCount != 0, ERROR);
 
     if (1 == pList->dwCount)
     {

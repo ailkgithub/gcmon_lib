@@ -127,10 +127,10 @@ GPublic Bool32_t os_get_process_memory_info(ProccessMemoryInfoP_t pMemoryInfo)
     sprintf(szFileName, "/proc/%d/status", getpid());
 
     sdwFileID = open(szFileName, 0, 0);
-    GCMON_CHECK_CONDITION(sdwFileID != -1, OSERROR);
+    GCMON_CHECK_COND(sdwFileID != -1, OSERROR);
 
     sdwReaded = read(sdwFileID, szMemoryInfo, sizeof(szMemoryInfo));
-    GCMON_CHECK_CONDITION(sdwReaded > 0 && sdwReaded < 1024, OSERROR);
+    GCMON_CHECK_COND(sdwReaded > 0 && sdwReaded < 1024, OSERROR);
     szMemoryInfo[sdwReaded - 1] = '\0';
 
     pHead = strstr(szMemoryInfo, "VmRSS:\t");

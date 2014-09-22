@@ -26,6 +26,16 @@
 #endif
 #endif
 
+#define FMTF "%.3f"
+
+#if defined(WIN32)
+#define FMTL "%I64d"
+#elif defined(LINUX) || defined(SOLARIS)
+#define FMTL "%lld"
+#else
+#error UnsupportedSystem
+#endif
+
 typedef signed char     Int8_t, *Int8P_t;
 typedef signed short    Int16_t, *Int16P_t;
 typedef signed int      Int32_t, *Int32P_t;

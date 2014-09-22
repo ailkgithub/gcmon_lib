@@ -22,6 +22,9 @@
     <Filter Include="sample">
       <UniqueIdentifier>{456f0e63-1a62-437e-ab45-92227348b51c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="args">
+      <UniqueIdentifier>{e2db9c5a-52aa-428d-9686-34d824302189}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gcmon\gcmon.c">
@@ -45,6 +48,9 @@
     <ClCompile Include="src\os\mem.c">
       <Filter>os</Filter>
     </ClCompile>
+    <ClCompile Include="src\args\args.c">
+      <Filter>args</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\rbtree\rbtree.h">
@@ -67,6 +73,12 @@
     </ClInclude>
     <ClInclude Include="include\os\type.h">
       <Filter>os</Filter>
+    </ClInclude>
+    <ClInclude Include="include\args\args.h">
+      <Filter>args</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gcmon\gcmon.h">
+      <Filter>gcmon</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

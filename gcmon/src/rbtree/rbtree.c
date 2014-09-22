@@ -141,7 +141,7 @@ GPrivate void rbnode_free(RBNodeP_t pNode, void (*pfnFree)(RBDataP_t))
     RBDataP_t pData = NULL;
 
     GCMON_CHECK_NULL(pNode, ERROR);
-    GCMON_CHECK_CONDITION(pNode != RBNIL, ERROR);
+    GCMON_CHECK_COND(pNode != RBNIL, ERROR);
 
     pData = pNode->pData;
 
@@ -176,7 +176,7 @@ GPrivate void rbnode_free_tree(RBNodeP_t pRoot, void (*pfnFree)(RBDataP_t))
     RBNodeP_t pRight = NULL;
 
     GCMON_CHECK_NULL(pRoot, ERROR);
-    GCMON_CHECK_CONDITION(pRoot != RBNIL, ERROR);
+    GCMON_CHECK_COND(pRoot != RBNIL, ERROR);
 
     pLeft = pRoot->pLeft;
     pRight = pRoot->pRight;
@@ -1168,7 +1168,7 @@ GPrivate RBTreeP_t rbtree_delete_node(RBTreeP_t pTree, RBNodeP_t pNode)
     RBNodeP_t pReplace = NULL;
 
     GCMON_CHECK_NULL(pNode, ERROR);
-    GCMON_CHECK_CONDITION(pNode != RBNIL, ERROR);
+    GCMON_CHECK_COND(pNode != RBNIL, ERROR);
 
     //! pTarget表示真正需要从红黑树中删除的节点
     if (RBNIL == pNode->pLeft || RBNIL == pNode->pRight)

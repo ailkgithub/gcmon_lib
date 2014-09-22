@@ -10,13 +10,13 @@
 #include "sample/sample.h"
 #include "perf/perf.h"
 
-
+//! 性能采样项结构体声明
 GTYPES(SampleItem);
 struct SampleItem
 {
-    String_t szHeader;
-    String_t szReference;
-    PerfDataItemP_t pItem;
+    String_t szHeader;                  //!< 采样项的说民，用于输出，同jstat的输出头
+    String_t szReference;               //!< 采样项所引用的性能技术项的名称
+    PerfDataItemP_t pItem;              //!< 采样项所对应的pdi项，指向性能红黑树中的对应项
 };
 
 GPrivate SampleItem_t gTicks = { "Timestamp", "sun.os.hrt.ticks", NULL };
@@ -409,10 +409,10 @@ GPrivate void s_out(String_t szContext)
         switch (gaSout[i].sdwType)
         {
         case S_FD:
-            s_printf("%s: %.3f\t", gaSout[i].szHeader, gaSout[i].pfnDouble());
+            s_printf("%s: "FMTF"\t", gaSout[i].szHeader, gaSout[i].pfnDouble());
             break;
         case S_FL:
-            s_printf("%s: %lld\t", gaSout[i].szHeader, gaSout[i].pfnJlong());
+            s_printf("%s: "FMTL"\t", gaSout[i].szHeader, gaSout[i].pfnJlong());
             break;
         case S_FS:
             s_printf(" | \t");
@@ -425,6 +425,18 @@ GPrivate void s_out(String_t szContext)
     s_printf("\n");
 }
 
+
+/*!
+*@brief        对外接口，采样输出
+*@author       zhaohm3
+*@param[in]    szContext
+*@retval
+*@note
+* 
+*@since    2014-9-22 15:35
+*@attention
+* 
+*/
 GPublic void sample_doit(String_t szContext)
 {
     s_out(szContext);

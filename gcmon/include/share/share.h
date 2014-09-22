@@ -62,7 +62,7 @@ do                                                          \
 } while (0)
 
 //! 检测条件是否成立
-#define GCMON_CHECK_CONDITION(condition, where)             \
+#define GCMON_CHECK_COND(condition, where)                  \
 do                                                          \
 {                                                           \
     if (!(condition))                                       \
@@ -103,5 +103,10 @@ do                                                          \
 
 #define GTYPES(type) typedef struct type type##_t, *##type##P_t
 #define GTYPEE(type) typedef enum type type##_t, *##type##P_t
+
+#define KB (1024UL)
+#define MB (1024UL * KB)
+#define GB (1024UL * MB)
+#define TB (1024UL * GB)
 
 #endif

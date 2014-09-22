@@ -7,20 +7,8 @@
  *
  ****************************************************************/
 
-#include "share/share.h"
-#include "perf/perf.h"
+#include "gcmon/gcmon.h"
 #include "sample/sample.h"
-
-GPrivate jvmtiEnv *gpJvmtiEnv = NULL;               //!< JVMTI开发环境
-GPrivate jvmtiEnv gJvmtiEnv = NULL;                 //!< gJvmtiEnv = *gpJvmtiEnv;
-GPrivate jvmtiCapabilities gCapabilities = { 0 };   //!< 控制JVMTI接口的对外提供情况
-GPrivate jvmtiEventCallbacks gCallbacks = { 0 };    //!< 控制JVMTI接口回调函数
-GPrivate jrawMonitorID gMonitorID = NULL;           //!< 管程变量，用于同步
-
-typedef jobject(JNICALL *Perf_Attach_t)(JNIEnv *, jobject, jstring, int, int);
-GPrivate Perf_Attach_t gfnPerf_Attach = NULL;       //!< jvm动态库中Perf_Attach接口的地址
-GPrivate Addr_t gPerfMemory = NULL;                  //!< 用于存放JVM性能计数器的共享内存区的地址
-GPrivate RBTreeP_t gpPerfTree = NULL;               //!< 通过pPerfMemory构建的性能树
 
 //! 用于处理java.lang.OutOfMemoryError异常
 #define GOOM_HEAP_SPACE 0                           //!< Java heap space
@@ -48,6 +36,17 @@ GPrivate String_t gaszExhaustMsg[] =
     [GOOM_ARRAY_SIZE] = "Requested array size exceeds VM limit"
 };
 
+GPrivate jvmtiEnv *gpJvmtiEnv = NULL;               //!< JVMTI开发环境
+GPrivate jvmtiEnv gJvmtiEnv = NULL;                 //!< gJvmtiEnv = *gpJvmtiEnv;
+GPrivate jvmtiCapabilities gCapabilities = { 0 };   //!< 控制JVMTI接口的对外提供情况
+GPrivate jvmtiEventCallbacks gCallbacks = { 0 };    //!< 控制JVMTI接口回调函数
+GPrivate jrawMonitorID gMonitorID = NULL;           //!< 管程变量，用于同步
+
+typedef jobject(JNICALL *Perf_Attach_t)(JNIEnv *, jobject, jstring, int, int);
+GPrivate Perf_Attach_t gfnPerf_Attach = NULL;       //!< jvm动态库中Perf_Attach接口的地址
+GPrivate Addr_t gPerfMemory = NULL;                 //!< 用于存放JVM性能计数器的共享内存区的地址
+GPrivate RBTreeP_t gpPerfTree = NULL;               //!< 通过pPerfMemory构建的性能树
+
 /*!
 *@brief        获取JVM共享的PerfMemory地址
 *@author       zhaohm3
@@ -60,7 +59,7 @@ GPrivate String_t gaszExhaustMsg[] =
 *@attention
 *
 */
-GPrivate void GetPerfMemoryAddress(jvmtiEnv *jvmti_env, JNIEnv* jni_env)
+GPrivate void gcmon_get_perf_address(jvmtiEnv *jvmti_env, JNIEnv* jni_env)
 {
     if (gfnPerf_Attach != NULL && NULL == gPerfMemory)
     {
@@ -80,12 +79,27 @@ GPrivate void GetPerfMemoryAddress(jvmtiEnv *jvmti_env, JNIEnv* jni_env)
 *@attention
 * 
 */
-GPrivate void BuildPerfMemoryTree()
+GPrivate void gcmon_init_perf_tree()
 {
     if (gPerfMemory != NULL && NULL == gpPerfTree)
     {
         gpPerfTree = pdi_build_tree(gPerfMemory);
     }
+}
+
+/*!
+*@brief        对外接口，获取存放性能计数器的红黑树指针
+*@author       zhaohm3
+*@retval
+*@note
+* 
+*@since    2014-9-22 15:20
+*@attention
+* 
+*/
+GPublic RBTreeP_t gcmon_get_perf_tree()
+{
+    return gpPerfTree;
 }
 
 /*!
@@ -98,7 +112,7 @@ GPrivate void BuildPerfMemoryTree()
 *@attention
 *
 */
-GPrivate jvmtiError RawMonitorEnter()
+GPrivate jvmtiError gcmon_monitor_enter()
 {
     return gJvmtiEnv->RawMonitorEnter(gpJvmtiEnv, gMonitorID);
 }
@@ -113,7 +127,7 @@ GPrivate jvmtiError RawMonitorEnter()
 *@attention
 *
 */
-GPrivate jvmtiError RawMonitorExit()
+GPrivate jvmtiError gcmon_monitor_exit()
 {
     return gJvmtiEnv->RawMonitorExit(gpJvmtiEnv, gMonitorID);
 }
@@ -131,7 +145,7 @@ GPrivate jvmtiError RawMonitorExit()
 *@attention
 *
 */
-GPrivate void JNICALL InitVM(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthread thread)
+GPrivate void JNICALL JVMInitVM(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthread thread)
 {
     GCMON_PRINT_FUNC();
 }
@@ -148,7 +162,7 @@ GPrivate void JNICALL InitVM(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthread threa
 *@attention
 *
 */
-GPrivate void JNICALL StartVM(jvmtiEnv *jvmti_env, JNIEnv* jni_env)
+GPrivate void JNICALL JVMStartVM(jvmtiEnv *jvmti_env, JNIEnv* jni_env)
 {
     GCMON_PRINT_FUNC();
 }
@@ -171,7 +185,7 @@ GPrivate void JNICALL StartVM(jvmtiEnv *jvmti_env, JNIEnv* jni_env)
 *@attention
 * 
 */
-GPrivate void JNICALL ExceptionEvent(jvmtiEnv *jvmti_env,
+GPrivate void JNICALL JVMException(jvmtiEnv *jvmti_env,
     JNIEnv* jni_env,
     jthread thread,
     jmethodID method,
@@ -199,7 +213,7 @@ GPrivate void JNICALL ExceptionEvent(jvmtiEnv *jvmti_env,
 *@attention
 * 
 */
-GPrivate void JNICALL CatchExceptionEvent(jvmtiEnv *jvmti_env,
+GPrivate void JNICALL JVMExceptionCatch(jvmtiEnv *jvmti_env,
     JNIEnv* jni_env,
     jthread thread,
     jmethodID method,
@@ -223,7 +237,7 @@ GPrivate void JNICALL CatchExceptionEvent(jvmtiEnv *jvmti_env,
 *@attention
 *
 */
-GPrivate void JNICALL EntryMethod(jvmtiEnv *jvmti_env, JNIEnv* jni_env,
+GPrivate void JNICALL JVMMethodEntry(jvmtiEnv *jvmti_env, JNIEnv* jni_env,
     jthread thread, jmethodID method)
 {
     GCMON_PRINT_FUNC();
@@ -245,14 +259,14 @@ GPrivate void JNICALL EntryMethod(jvmtiEnv *jvmti_env, JNIEnv* jni_env,
 *@attention
 *
 */
-GPrivate void JNICALL BindNativeMethod(jvmtiEnv *jvmti_env,
+GPrivate void JNICALL JVMNativeMethodBind(jvmtiEnv *jvmti_env,
     JNIEnv* jni_env,
     jthread thread,
     jmethodID method,
     void* address,
     void** new_address_ptr)
 {
-    /*GCMON_PRINT_FUNC();*/
+    GCMON_PRINT_FUNC();
 
     //! 获取Perf_Attach的地址
     if (NULL == gfnPerf_Attach)
@@ -263,7 +277,7 @@ GPrivate void JNICALL BindNativeMethod(jvmtiEnv *jvmti_env,
         jvmtiError error = JVMTI_ERROR_NONE;
 
         GASSERT(gpJvmtiEnv == jvmti_env);
-        error = RawMonitorEnter();
+        error = gcmon_monitor_enter();
 
         if (JVMTI_ERROR_NONE == error && NULL == gfnPerf_Attach)
         {
@@ -282,18 +296,18 @@ GPrivate void JNICALL BindNativeMethod(jvmtiEnv *jvmti_env,
                 gfnPerf_Attach = (Perf_Attach_t)address;
 
                 //! 通过Perf_Attach接口，Attach到JVM，获取PerfMemory地址
-                GetPerfMemoryAddress(jvmti_env, jni_env);
+                gcmon_get_perf_address(jvmti_env, jni_env);
             }
 
-            gcmon_debug_msg("%s --> method = 0x%p \t address = 0x%p \t new_address_ptr = 0x%p \t *new_address_ptr = 0x%p name = %s \t sig = %s \t gsig = %s \n",
-                __FUNCTION__, method, address, new_address_ptr, *new_address_ptr, szName, szSig, szGsig);
+            /* gcmon_debug_msg("%s --> method = 0x%p \t address = 0x%p \t new_address_ptr = 0x%p \t *new_address_ptr = 0x%p name = %s \t sig = %s \t gsig = %s \n",
+                __FUNCTION__, method, address, new_address_ptr, *new_address_ptr, szName, szSig, szGsig);*/
 
             gJvmtiEnv->Deallocate(gpJvmtiEnv, szName);
             gJvmtiEnv->Deallocate(gpJvmtiEnv, szSig);
             gJvmtiEnv->Deallocate(gpJvmtiEnv, szGsig);
         }
 
-        error = RawMonitorExit();
+        error = gcmon_monitor_exit();
     }
 }
 
@@ -312,7 +326,7 @@ GPrivate void JNICALL BindNativeMethod(jvmtiEnv *jvmti_env,
 *@attention
 * 
 */
-GPrivate void JNICALL ResourceExhaustedEvent(jvmtiEnv *jvmti_env,
+GPrivate void JNICALL JVMResourceExhausted(jvmtiEnv *jvmti_env,
     JNIEnv* jni_env,
     jint flags,
     const void* reserved,
@@ -333,21 +347,21 @@ GPrivate void JNICALL ResourceExhaustedEvent(jvmtiEnv *jvmti_env,
 *@attention
 *
 */
-GPrivate void JNICALL StartGarbageCollection(jvmtiEnv *jvmti_env)
+GPrivate void JNICALL JVMGarbageCollectionStart(jvmtiEnv *jvmti_env)
 {
-    /*GCMON_PRINT_FUNC();
-    perf_memory_analyze(gPerfMemory);*/
-
+    GCMON_PRINT_FUNC();
     if (NULL == gpPerfTree)
     {
         //! 通过gPerfMemory构建性能树
         GASSERT(NULL == gpPerfTree);
-        BuildPerfMemoryTree();
+        gcmon_init_perf_tree();
 
+        //! 性能计数器红黑树构建好了后，随机初始化性能采样项
         GASSERT(gpPerfTree != NULL);
         sample_init(gpPerfTree);
     }
 
+    //! GC开始时候进行性能采样
     sample_doit("Start  GC ");
 }
 
@@ -362,10 +376,12 @@ GPrivate void JNICALL StartGarbageCollection(jvmtiEnv *jvmti_env)
 *@attention
 *
 */
-GPrivate void JNICALL FinishGarbageCollection(jvmtiEnv *jvmti_env)
+GPrivate void JNICALL JVMGarbageCollectionFinish(jvmtiEnv *jvmti_env)
 {
-    /*GCMON_PRINT_FUNC();*/
-    perf_memory_analyze(gPerfMemory);
+    GCMON_PRINT_FUNC();
+    vmargs_parse_test();
+
+    //! GC结束时候进行性能采样
     sample_doit("Finish GC ");
 }
 
@@ -379,7 +395,7 @@ GPrivate void JNICALL FinishGarbageCollection(jvmtiEnv *jvmti_env)
 *@attention
 *
 */
-GPrivate void ZeroCapabilities()
+GPrivate void JVMZeroCapabilities()
 {
     memset(&gCapabilities, 0, sizeof(jvmtiCapabilities));
 }
@@ -394,9 +410,9 @@ GPrivate void ZeroCapabilities()
 *@attention
 *
 */
-GPrivate void InitCapabilities()
+GPrivate void JVMInitCapabilities()
 {
-    ZeroCapabilities();
+    JVMZeroCapabilities();
     gCapabilities.can_get_owned_monitor_info = 1;
     gCapabilities.can_get_current_contended_monitor = 1;
     gCapabilities.can_get_monitor_info = 1;
@@ -423,7 +439,7 @@ GPrivate void InitCapabilities()
 *@attention
 *
 */
-GPrivate void ZeroCallbacks()
+GPrivate void JVMZeroCallbacks()
 {
     memset(&gCallbacks, 0, sizeof(jvmtiEventCallbacks));
 }
@@ -438,20 +454,20 @@ GPrivate void ZeroCallbacks()
 *@attention
 *
 */
-GPrivate void InitCallbacks()
+GPrivate void JVMInitCallbacks()
 {
-    ZeroCallbacks();
-    /*!
-    gCallbacks.VMInit = InitVM;
-    gCallbacks.VMStart = StartVM;
-    gCallbacks.Exception = ExceptionEvent;
-    gCallbacks.ExceptionCatch = CatchExceptionEvent;
-    gCallbacks.MethodEntry = EntryMethod;
+    JVMZeroCallbacks();
+    /*
+    gCallbacks.VMInit = JVMInitVM;
+    gCallbacks.VMStart = JVMStartVM;
+    gCallbacks.Exception = JVMException;
+    gCallbacks.ExceptionCatch = JVMExceptionCatch;
+    gCallbacks.MethodEntry = JVMMethodEntry;
     */
-    gCallbacks.NativeMethodBind = BindNativeMethod;
-    gCallbacks.ResourceExhausted = ResourceExhaustedEvent;
-    gCallbacks.GarbageCollectionStart = StartGarbageCollection;
-    gCallbacks.GarbageCollectionFinish = FinishGarbageCollection;
+    gCallbacks.NativeMethodBind = JVMNativeMethodBind;
+    gCallbacks.ResourceExhausted = JVMResourceExhausted;
+    gCallbacks.GarbageCollectionStart = JVMGarbageCollectionStart;
+    gCallbacks.GarbageCollectionFinish = JVMGarbageCollectionFinish;
 }
 
 /*!
@@ -465,7 +481,7 @@ GPrivate void InitCallbacks()
 *@attention
 *
 */
-GPrivate void SetEventNotificationMode(jvmtiEventMode mode)
+GPrivate void JVMSetEventNotificationMode(jvmtiEventMode mode)
 {
     gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_VM_INIT, NULL);
     gJvmtiEnv->SetEventNotificationMode(gpJvmtiEnv, mode, JVMTI_EVENT_VM_START, NULL);
@@ -493,7 +509,7 @@ GPrivate void SetEventNotificationMode(jvmtiEventMode mode)
 *@attention
 *
 */
-GPrivate void ClearJvmtiEnv()
+GPrivate void JVMClearJvmtiEnv()
 {
     if (NULL == gpJvmtiEnv || NULL == gJvmtiEnv)
     {
@@ -505,13 +521,13 @@ GPrivate void ClearJvmtiEnv()
         gJvmtiEnv->DestroyRawMonitor(gpJvmtiEnv, gMonitorID);
     }
 
-    ZeroCapabilities();
+    JVMZeroCapabilities();
     gJvmtiEnv->AddCapabilities(gpJvmtiEnv, &gCapabilities);
 
-    ZeroCallbacks();
+    JVMZeroCallbacks();
     gJvmtiEnv->SetEventCallbacks(gpJvmtiEnv, &gCallbacks, sizeof(jvmtiEventCallbacks));
 
-    SetEventNotificationMode(JVMTI_DISABLE);
+    JVMSetEventNotificationMode(JVMTI_DISABLE);
 }
 
 /*!
@@ -524,22 +540,22 @@ GPrivate void ClearJvmtiEnv()
 *@attention
 *
 */
-GPrivate jvmtiError InitJvmtiEnv()
+GPrivate jvmtiError JVMInitJvmtiEnv()
 {
     jvmtiError error = JVMTI_ERROR_NONE;
 
     error = gJvmtiEnv->CreateRawMonitor(gpJvmtiEnv, "GC Monitor", &gMonitorID);
     GCMON_CHECK_ERROR(error, "ERROR: Can't Create Raw Monitor!", ERROR);
 
-    InitCapabilities();
+    JVMInitCapabilities();
     error = gJvmtiEnv->AddCapabilities(gpJvmtiEnv, &gCapabilities);
     GCMON_CHECK_ERROR(error, "ERROR: Can't Set JVMTI Capabilities.", ERROR);
 
-    InitCallbacks();
+    JVMInitCallbacks();
     error = gJvmtiEnv->SetEventCallbacks(gpJvmtiEnv, &gCallbacks, sizeof(jvmtiEventCallbacks));
     GCMON_CHECK_ERROR(error, "ERROR: Can't Set Callbacks.", ERROR);
 
-    SetEventNotificationMode(JVMTI_ENABLE);
+    JVMSetEventNotificationMode(JVMTI_ENABLE);
 
 ERROR:
     return error;
@@ -573,14 +589,14 @@ JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *jvm, char *options, void *reserved)
     }
 
     gJvmtiEnv = *gpJvmtiEnv;
-    error = InitJvmtiEnv();
+    error = JVMInitJvmtiEnv();
     GCMON_CHECK_ERROR(error, "ERROR: Can't Init JVMTI Env.", ERROR);
 
     gcmon_debug_fopen();
     return JNI_OK;
 
 ERROR:
-    ClearJvmtiEnv();
+    JVMClearJvmtiEnv();
     return JNI_ERR;
 }
 
@@ -598,7 +614,7 @@ ERROR:
 JNIEXPORT void JNICALL Agent_OnUnload(JavaVM *vm)
 {
     GCMON_PRINT_FUNC();
-    ClearJvmtiEnv();
+    JVMClearJvmtiEnv();
     rbtree_free(gpPerfTree);
     gcmon_debug_fclose();
 }
