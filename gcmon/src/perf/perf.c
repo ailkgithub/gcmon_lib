@@ -9,12 +9,13 @@
 
 #include "perf/perf.h"
 
-GTYPES(PerfDataPrologue);
-GTYPES(PerfDataEntry);
-GTYPEE(BasicType);
-GTYPEE(Variability);
-GTYPEE(Units);
-GTYPEE(Flags);
+typedef struct PerfDataPrologue PerfDataPrologue_t, *PerfDataPrologueP_t;
+typedef struct PerfDataEntry PerfDataEntry_t, *PerfDataEntryP_t;
+typedef enum BasicType BasicType_t, *BasicTypeP_t;
+typedef enum Variability Variability_t, *VariabilityP_t;
+typedef enum Units Units_t, *UnitsP_t;
+typedef enum Flags Flags_t, *FlagsP_t;
+
 
 //! 检测Hotspot的PerfDataEntry的内容变化
 #define PERFDATA_MAJOR_VERSION 2

@@ -13,7 +13,7 @@
 #include "share/share.h"
 
 //! 计算机的物理内存信息
-GTYPES(PhysicalMemoryInfo);
+typedef struct PhysicalMemoryInfo PhysicalMemoryInfo_t, *PhysicalMemoryInfoP_t;
 struct PhysicalMemoryInfo
 {
     Size64_t lwTotalPhys;                   //!< 计算机当前物理内存大小，单位(Byte)
@@ -21,7 +21,7 @@ struct PhysicalMemoryInfo
 };
 
 //! 进程当前的内存信息
-GTYPES(ProccessMemoryInfo);
+typedef struct ProccessMemoryInfo ProccessMemoryInfo_t, *ProccessMemoryInfoP_t;
 struct ProccessMemoryInfo
 {
     Size64_t lwPhysicalSize;                //!< 进程所占用的物理内存大小，单位(Byte)

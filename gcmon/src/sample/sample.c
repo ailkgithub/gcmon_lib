@@ -11,7 +11,7 @@
 #include "perf/perf.h"
 
 //! 性能采样项结构体声明
-GTYPES(SampleItem);
+typedef struct SampleItem SampleItem_t, *SampleItemP_t;
 struct SampleItem
 {
     String_t szHeader;                  //!< 采样项的说民，用于输出，同jstat的输出头

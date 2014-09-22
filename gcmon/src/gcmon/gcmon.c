@@ -362,7 +362,11 @@ GPrivate void JNICALL JVMGarbageCollectionStart(jvmtiEnv *jvmti_env)
     }
 
     //! GC开始时候进行性能采样
-    sample_doit("Start  GC ");
+    if (gpPerfTree != NULL)
+    {
+        sample_doit("Start  GC ");
+    }
+
 }
 
 /*!
@@ -379,10 +383,13 @@ GPrivate void JNICALL JVMGarbageCollectionStart(jvmtiEnv *jvmti_env)
 GPrivate void JNICALL JVMGarbageCollectionFinish(jvmtiEnv *jvmti_env)
 {
     GCMON_PRINT_FUNC();
-    vmargs_parse_test();
+    /*vmargs_parse_test();*/
 
     //! GC结束时候进行性能采样
-    sample_doit("Finish GC ");
+    if (gpPerfTree != NULL)
+    {
+        sample_doit("Finish GC ");
+    }
 }
 
 /*!

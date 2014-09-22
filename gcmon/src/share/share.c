@@ -15,10 +15,12 @@ GPrivate FILE *gFile = NULL;
 //! ´ò¿ªgFile
 GPublic void gcmon_debug_fopen()
 {
+#ifdef DEBUG
     if (NULL == gFile)
     {
         gFile = fopen("gcmon_debug.txt", "w+");
     }
+#endif
 }
 
 //! ¹Ø±ÕgFile
@@ -61,7 +63,7 @@ GPublic void gcmon_debug_flush()
  */
 int gcmon_debug_msg(const char *fmt, ...)
 {
-#ifdef _DEBUG
+#ifdef DEBUG
     int len = 0;
     va_list args = NULL;
 

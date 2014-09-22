@@ -92,7 +92,7 @@ do                                                          \
     }                                                       \
 } while (0)
 
-#ifdef _DEBUG
+#ifdef DEBUG
     #define GCMON_PRINT_FUNC() printf("%s\n", __FUNCTION__)
 #else
     #define GCMON_PRINT_FUNC()
@@ -100,9 +100,6 @@ do                                                          \
 
 //! ∂œ—‘÷ÿ∂®“Â
 #define GASSERT assert
-
-#define GTYPES(type) typedef struct type type##_t, *##type##P_t
-#define GTYPEE(type) typedef enum type type##_t, *##type##P_t
 
 #define KB (1024UL)
 #define MB (1024UL * KB)

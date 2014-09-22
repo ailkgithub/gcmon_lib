@@ -13,7 +13,7 @@
 #include "share/share.h"
 #include "rbtree/rbtree.h"
 
-GTYPES(PerfDataItem);
+typedef struct PerfDataItem PerfDataItem_t, *PerfDataItemP_t;
 
 GPublic RBTreeP_t pdi_build_tree(Addr_t pPerfMemory);
 GPublic PerfDataItemP_t pdi_search_item(RBTreeP_t pTree, String_t szName);
