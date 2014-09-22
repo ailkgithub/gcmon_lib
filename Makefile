@@ -75,14 +75,15 @@ OBJS = $(patsubst %.c,%.o,$(wildcard gcmon/src/args/*.c))    \
        $(patsubst %.c,%.o,$(wildcard gcmon/src/perf/*.c))    \
        $(patsubst %.c,%.o,$(wildcard gcmon/src/rbtree/*.c))   \
        $(patsubst %.c,%.o,$(wildcard gcmon/src/sample/*.c))   \
+       $(patsubst %.c,%.o,$(wildcard gcmon/src/ana/*.c))   \
        $(patsubst %.c,%.o,$(wildcard gcmon/src/share/*.c)) 
 
 all : $(OBJS)
-	mkdir -p $(OUT_DIR)/$(OS)/$(BIT)
-	ar crv $(OUT_DIR)/$(OS)/$(BIT)/$(GCMON_NAME).a $(OBJS)
-	ranlib $(OUT_DIR)/$(OS)/$(BIT)/$(GCMON_NAME).a  
+	mkdir -p $(OUT_DIR)/$(OS)$(BIT)
+	ar crv $(OUT_DIR)/$(OS)$(BIT)/$(GCMON_NAME).a $(OBJS)
+	ranlib $(OUT_DIR)/$(OS)$(BIT)/$(GCMON_NAME).a  
 
-	$(CC) -O2 $(_PIC) $(_MODE) $(OBJS) $(LIBS) -o $(OUT_DIR)/$(OS)/$(BIT)/$(GCMON_NAME).so
+	$(CC) -O2 $(_PIC) $(_MODE) $(OBJS) $(LIBS) -o $(OUT_DIR)/$(OS)$(BIT)/$(GCMON_NAME).so
 
 clean : 
 	rm -rf $(OBJS)

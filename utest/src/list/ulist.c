@@ -1,4 +1,3 @@
-
 #include "list/list.h"
 #include "share/share.h"
 #include "utest.h"
@@ -7,7 +6,6 @@ GPrivate Int32_t uld_compare(LDataP_t pSrc, LDataP_t  pDes)
 {
     return (*(Int32P_t)pSrc) - (*(Int32P_t)pDes);
 }
-
 
 GPrivate void uld_free(LDataP_t pData)
 {

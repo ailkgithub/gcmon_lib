@@ -12,7 +12,7 @@
 
 #include "share/share.h"
 
-GTYPES(UItem);
+typedef struct UItem UItem_t, *UItemP_t;
 struct UItem
 {
     Int32_t     sdwId;          //!< µ¥Ôª²âÊÔº¯ÊýIDºÅ

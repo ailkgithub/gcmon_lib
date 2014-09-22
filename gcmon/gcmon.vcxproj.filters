@@ -25,6 +25,9 @@
     <Filter Include="args">
       <UniqueIdentifier>{e2db9c5a-52aa-428d-9686-34d824302189}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ana">
+      <UniqueIdentifier>{4b2d4461-3fa4-4ddd-90fa-96addd3e747f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gcmon\gcmon.c">
@@ -50,6 +53,9 @@
     </ClCompile>
     <ClCompile Include="src\args\args.c">
       <Filter>args</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ana\ana.c">
+      <Filter>ana</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -79,6 +85,9 @@
     </ClInclude>
     <ClInclude Include="include\gcmon\gcmon.h">
       <Filter>gcmon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ana\ana.h">
+      <Filter>ana</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

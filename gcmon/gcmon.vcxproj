@@ -27,6 +27,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\ana\ana.c" />
     <ClCompile Include="src\args\args.c" />
     <ClCompile Include="src\gcmon\gcmon.c" />
     <ClCompile Include="src\list\list.c" />
@@ -37,6 +38,7 @@
     <ClCompile Include="src\share\share.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\ana\ana.h" />
     <ClInclude Include="include\args\args.h" />
     <ClInclude Include="include\gcmon\gcmon.h" />
     <ClInclude Include="include\list\list.h" />

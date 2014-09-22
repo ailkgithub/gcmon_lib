@@ -16,7 +16,6 @@ typedef enum Variability Variability_t, *VariabilityP_t;
 typedef enum Units Units_t, *UnitsP_t;
 typedef enum Flags Flags_t, *FlagsP_t;
 
-
 //! 检测Hotspot的PerfDataEntry的内容变化
 #define PERFDATA_MAJOR_VERSION 2
 #define PERFDATA_MINOR_VERSION 0
