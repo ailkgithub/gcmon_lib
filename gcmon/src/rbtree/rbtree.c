@@ -1,5 +1,5 @@
 /*!**************************************************************
- *@file rbtree.cpp
+ *@file rbtree.c
  *@brief    红黑树的实现
  *@author   zhaohm3
  *@date 2014-9-3 18:27
@@ -1236,115 +1236,6 @@ GPrivate RBTreeP_t rbtree_delete_node(RBTreeP_t pTree, RBNodeP_t pNode)
 ERROR:
     return pTree;
 }
-
-//! 另一种删除节点的方式
-/*!
-GPrivate RBTreeP_t rbtree_delete_node_back(RBTreeP_t pTree, RBNodeP_t pNode)
-{
-    RBNodeP_t pTarget = NULL;
-    RBNodeP_t pReplace = NULL;
-
-    GCMON_CHECK_NULL(pTree, ERROR);
-    GCMON_CHECK_NULL(pNode, ERROR);
-
-    pTarget = pNode;
-
-    //! 如果被删除的节点左右子树都不为空
-    if (pTarget->pLeft != RBNIL && pTarget->pRight != RBNIL)
-    {
-        //! 找到pTarget节点中序遍历的前一个节点pLMax，该节点为pTarget节点的左子树中最大值的节点
-        RBNodeP_t pLMax = pTarget->pLeft;
-        RBDataP_t pTargetData = NULL;
-
-        while (pLMax->pRight != RBNIL)
-        {
-            pLMax = pLMax->pRight;
-        }
-
-        //! 交换pTarget和pLMax的数据，相当于将pTarget移动到pLMax的位置，等待从红黑树中删除
-        pTargetData = pTarget->pData;
-        pTarget->pData = pLMax->pData;
-        pLMax->pData = pTargetData;
-        pTarget = pLMax;
-    }
-
-    //! 开始修复替换节点，如果该节点不为空
-    pReplace = (pTarget->pLeft != RBNIL) ? pTarget->pLeft : pTarget->pRight;
-
-    if (pReplace != RBNIL)
-    {
-        //! 让pReplace的parent指向pTarget的parent
-        pReplace->pParent = pTarget->pParent;
-
-        //! 如果pTarget的parent为空，表明pTarget本身是根节点
-        if (NULL == pTarget->pParent)
-        {
-            pTree->pRoot = pReplace;
-        }
-        //! 如果pTarget是其父节点的左子节点
-        else if (pTarget == pTarget->pParent->pLeft)
-        {
-            //! 让pTarget的父节点的left指向pReplace
-            pTarget->pParent->pLeft = pReplace;
-        }
-        //! 如果pTarget是其父节点的右子节点
-        else
-        {
-            //! 让pTarget的父节点的right指向pReplace
-            pTarget->pParent->pRight = pReplace;
-        }
-
-        //! 彻底移除pTarget节点
-        pTarget->pLeft = pTarget->pRight = pTarget->pParent = NULL;
-
-        //! 修复红黑树
-        if (RBC_BLACK == pTarget->mColor)
-        {
-            rbtree_delete_fixup(pTree, pReplace);
-        }
-    }
-    //! pTarget本身是根节点
-    else if (NULL == pTarget->pParent)
-    {
-        pTree->pRoot = RBNIL;
-    }
-    else
-    {
-        //! pTarget没有子节点，把它当成虚的替换节点，修复红黑树
-        if (RBC_BLACK == pTarget->mColor)
-        {
-            rbtree_delete_fixup(pTree, pTarget);
-        }
-
-        if (pTarget->pParent != NULL)
-        {
-            //! 如果pTarget是其父节点的左子节点
-            if (pTarget == pTarget->pParent->pLeft)
-            {
-                //! 将pTarget父节点的left设置为空
-                pTarget->pParent->pLeft = RBNIL;
-            }
-            //! 如果pTarget是其父节点的右子节点
-            else if (pTarget == pTarget->pParent->pRight)
-            {
-                //! 将pTarget父节点的right设置为空
-                pTarget->pParent->pRight = RBNIL;
-            }
-
-            //! 将pTarget的parent设置为空
-            pTarget->pParent = NULL;
-        }
-    }
-
-    //! GCMON_CHECK_NULL(pTarget, ERROR);
-    GASSERT(pTarget != NULL);
-    rbnode_free(pTarget, pTree->pfnFree);
-    pTree->dwCount--;
-
-ERROR:
-    return pTree;
-}
-*/
 
 /*!
 *@brief        将pData插入红黑树

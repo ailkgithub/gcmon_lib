@@ -13,6 +13,7 @@
 #include "share/share.h"
 #include "rbtree/rbtree.h"
 
+GPublic String_t args_get_javacmd(RBTreeP_t pPdiTree);
 GPublic String_t args_get_vmargs(RBTreeP_t pPdiTree);
 GPublic Size64_t vmargs_parse_size(String_t szVmArgs, String_t szPrefix, StringP_t pszArgs);
 GPublic Size64_t vmargs_parse_InitialHeapSize(String_t szVmArgs, StringP_t pszArgs);

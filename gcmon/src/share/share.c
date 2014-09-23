@@ -1,5 +1,5 @@
 /*!**************************************************************
- *@file share.cpp
+ *@file share.c
  *@brief    共享接口定义
  *@author   zhaohm3
  *@date 2014-9-3 18:23
@@ -65,7 +65,7 @@ int gcmon_debug_msg(const char *fmt, ...)
 {
 #ifdef DEBUG
     int len = 0;
-    va_list args = NULL;
+    va_list args;
 
     va_start(args, fmt);
     if (gFile != NULL)

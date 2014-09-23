@@ -20,7 +20,6 @@ GPrivate RBTreeP_t urbt_insert(RBTreeP_t pTree, Int32_t data)
         GMALLOC(pData, Int32_t, sizeof(Int32_t));
     } while (NULL == pData);
     *pData = data;
-    /*printf("pData --> 0x%p : %d \n ", pData, data);*/
     return rbtree_insert(pTree, pData, NULL);
 }
 

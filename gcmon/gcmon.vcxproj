@@ -31,7 +31,7 @@
     <ClCompile Include="src\args\args.c" />
     <ClCompile Include="src\gcmon\gcmon.c" />
     <ClCompile Include="src\list\list.c" />
-    <ClCompile Include="src\os\mem.c" />
+    <ClCompile Include="src\os\os.c" />
     <ClCompile Include="src\perf\perf.c" />
     <ClCompile Include="src\rbtree\rbtree.c" />
     <ClCompile Include="src\sample\sample.c" />
@@ -42,7 +42,7 @@
     <ClInclude Include="include\args\args.h" />
     <ClInclude Include="include\gcmon\gcmon.h" />
     <ClInclude Include="include\list\list.h" />
-    <ClInclude Include="include\os\mem.h" />
+    <ClInclude Include="include\os\os.h" />
     <ClInclude Include="include\os\type.h" />
     <ClInclude Include="include\perf\perf.h" />
     <ClInclude Include="include\rbtree\rbtree.h" />

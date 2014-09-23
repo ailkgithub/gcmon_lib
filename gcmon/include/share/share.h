@@ -101,9 +101,17 @@ do                                                          \
 //! 断言重定义
 #define GASSERT assert
 
+//! 获取数组长度
+#define ARRAY_SIZE(a) ((sizeof(a))/(sizeof((a)[0])))
+
 #define KB (1024UL)
 #define MB (1024UL * KB)
 #define GB (1024UL * MB)
 #define TB (1024UL * GB)
+
+#define BYTE2KB(b) ((b)/KB)
+#define BYTE2MB(b) ((b)/MB)
+#define BYTE2GB(b) ((b)/GB)
+#define BYTE2TB(b) ((b)/TB)
 
 #endif

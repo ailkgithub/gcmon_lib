@@ -48,14 +48,14 @@
     <ClCompile Include="src\sample\sample.c">
       <Filter>sample</Filter>
     </ClCompile>
-    <ClCompile Include="src\os\mem.c">
-      <Filter>os</Filter>
-    </ClCompile>
     <ClCompile Include="src\args\args.c">
       <Filter>args</Filter>
     </ClCompile>
     <ClCompile Include="src\ana\ana.c">
       <Filter>ana</Filter>
+    </ClCompile>
+    <ClCompile Include="src\os\os.c">
+      <Filter>os</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -74,9 +74,6 @@
     <ClInclude Include="include\sample\sample.h">
       <Filter>sample</Filter>
     </ClInclude>
-    <ClInclude Include="include\os\mem.h">
-      <Filter>os</Filter>
-    </ClInclude>
     <ClInclude Include="include\os\type.h">
       <Filter>os</Filter>
     </ClInclude>
@@ -88,6 +85,9 @@
     </ClInclude>
     <ClInclude Include="include\ana\ana.h">
       <Filter>ana</Filter>
+    </ClInclude>
+    <ClInclude Include="include\os\os.h">
+      <Filter>os</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

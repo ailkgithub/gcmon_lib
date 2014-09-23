@@ -10,6 +10,8 @@
 #ifndef _ana_h__
 #define _ana_h__
 
-#include "share/share.h"
+#include "rbtree/rbtree.h"
+
+GPublic void ana_OOM(RBTreeP_t pPdiTree, Int32_t sdwOOMType);
 
 #endif

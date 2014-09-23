@@ -11,6 +11,32 @@
 #include "perf/perf.h"
 
 /*!
+*@brief        从pdi树中搜索sun.rt.javaCommand项，得到JVM的运行命令
+*@author       zhaohm3
+*@param[in]    pPdiTree
+*@retval
+*@note
+* 
+*@since    2014-9-23 10:43
+*@attention
+* 
+*/
+GPublic String_t args_get_javacmd(RBTreeP_t pPdiTree)
+{
+    String_t szCmdName = "sun.rt.javaCommand";
+    String_t szJavaCmd = NULL;
+    PerfDataItemP_t pCmd = NULL;
+
+    GCMON_CHECK_NULL(pPdiTree, ERROR);
+    pCmd = pdi_search_item(pPdiTree, szCmdName);
+    GCMON_CHECK_NULL(pCmd, ERROR);
+    szJavaCmd = pdi_get_string(pCmd);
+
+ERROR:
+    return szJavaCmd;
+}
+
+/*!
 *@brief        从pdi树中搜索java.rt.vmArgs项，得到JVM的运行时启动参数
 *@author       zhaohm3
 *@param[in]    pPdiTree
@@ -57,7 +83,7 @@ GPrivate String_t vmargs_get_last(String_t szVmArgs, String_t szPrefix)
     GCMON_CHECK_NULL(szPrefix, ERROR);
 
     szCurr = strstr(szVmArgs, szPrefix);
-    dwPrefixSize = strlen(szPrefix);
+    dwPrefixSize = (Size32_t)strlen(szPrefix);
 
     while (szCurr != NULL)
     {
@@ -129,11 +155,11 @@ GPublic Size64_t vmargs_parse_size(String_t szVmArgs, String_t szPrefix, StringP
     if (lwSize != 0 && pszArgs != NULL)
     {
         String_t szArgs = NULL;
-        Size32_t sdwSize = szItor - szStart + 2;
-        GMALLOC(szArgs, Char_t, sdwSize);
+        Int_t wSize = szItor - szStart + 2;
+        GMALLOC(szArgs, Char_t, wSize);
         GCMON_CHECK_NULL(szArgs, ERROR);
-        strncpy(szArgs, szStart, sdwSize - 1);
-        szArgs[sdwSize - 1] = '\0';
+        strncpy(szArgs, szStart, wSize - 1);
+        szArgs[wSize - 1] = '\0';
         *pszArgs = szArgs;
     }
 
@@ -216,36 +242,4 @@ GPublic Size64_t vmargs_parse_ThreadStackSize(String_t szVmArgs, StringP_t pszAr
 {
     return vmargs_parse_final_size(szVmArgs, "-Xss", "-XX:ThreadStackSize=", pszArgs);
 
-}
-
-GPublic RBTreeP_t gcmon_get_perf_tree();
-GPublic void vmargs_parse_test()
-{
-    String_t szVMArgs = args_get_vmargs(gcmon_get_perf_tree());
-    String_t szArgs = NULL;
-    Size64_t lwSize = 0;
-
-    lwSize = vmargs_parse_InitialHeapSize(szVMArgs, &szArgs);
-    GFREE(szArgs);
-
-    lwSize = vmargs_parse_MaxHeapSize(szVMArgs, &szArgs);
-    GFREE(szArgs);
-
-    lwSize = vmargs_parse_NewSize(szVMArgs, &szArgs);
-    GFREE(szArgs);
-
-    lwSize = vmargs_parse_MaxNewSize(szVMArgs, &szArgs);
-    GFREE(szArgs);
-
-    lwSize = vmargs_parse_OldSize(szVMArgs, &szArgs);
-    GFREE(szArgs);
-
-    lwSize = vmargs_parse_PermSize(szVMArgs, &szArgs);
-    GFREE(szArgs);
-
-    lwSize = vmargs_parse_MaxPermSize(szVMArgs, &szArgs);
-    GFREE(szArgs);
-
-    lwSize = vmargs_parse_ThreadStackSize(szVMArgs, &szArgs);
-    GFREE(szArgs);
 }

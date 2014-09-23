@@ -9,13 +9,14 @@
 
 #include "gcmon/gcmon.h"
 #include "sample/sample.h"
+#include "ana/ana.h"
 
 //! 用于处理java.lang.OutOfMemoryError异常
-#define GOOM_HEAP_SPACE 0                           //!< Java heap space
-#define GOOM_OVERHEAD_LIMIT 1                       //!< GC overhead limit exceeded
-#define GOOM_NATIVE_THREAD 2                        //!< unable to create new native thread
-#define GOOM_PERM_SPACE 3                           //!< PermGen space
-#define GOOM_ARRAY_SIZE 4                           //!< Requested array size exceeds VM limit
+#define GOOM_HEAP_SPACE     0                           //!< Java heap space
+#define GOOM_OVERHEAD_LIMIT 1                           //!< GC overhead limit exceeded
+#define GOOM_NATIVE_THREAD  2                           //!< unable to create new native thread
+#define GOOM_PERM_SPACE     3                           //!< PermGen space
+#define GOOM_ARRAY_SIZE     4                           //!< Requested array size exceeds VM limit
 
 //! 当发生OutOfMemoryError异常时，由JVM抛出的内存资源耗尽的提示
 GPrivate String_t gaszExhaustMsg[] =
@@ -36,16 +37,16 @@ GPrivate String_t gaszExhaustMsg[] =
     [GOOM_ARRAY_SIZE] = "Requested array size exceeds VM limit"
 };
 
+typedef jobject(JNICALL *Perf_Attach_t)(JNIEnv *, jobject, jstring, int, int);
+
 GPrivate jvmtiEnv *gpJvmtiEnv = NULL;               //!< JVMTI开发环境
 GPrivate jvmtiEnv gJvmtiEnv = NULL;                 //!< gJvmtiEnv = *gpJvmtiEnv;
 GPrivate jvmtiCapabilities gCapabilities = { 0 };   //!< 控制JVMTI接口的对外提供情况
 GPrivate jvmtiEventCallbacks gCallbacks = { 0 };    //!< 控制JVMTI接口回调函数
 GPrivate jrawMonitorID gMonitorID = NULL;           //!< 管程变量，用于同步
-
-typedef jobject(JNICALL *Perf_Attach_t)(JNIEnv *, jobject, jstring, int, int);
-GPrivate Perf_Attach_t gfnPerf_Attach = NULL;       //!< jvm动态库中Perf_Attach接口的地址
 GPrivate Addr_t gPerfMemory = NULL;                 //!< 用于存放JVM性能计数器的共享内存区的地址
 GPrivate RBTreeP_t gpPerfTree = NULL;               //!< 通过pPerfMemory构建的性能树
+GPrivate Perf_Attach_t gfnPerf_Attach = NULL;       //!< jvm动态库中Perf_Attach接口的地址
 
 /*!
 *@brief        获取JVM共享的PerfMemory地址
@@ -312,6 +313,33 @@ GPrivate void JNICALL JVMNativeMethodBind(jvmtiEnv *jvmti_env,
 }
 
 /*!
+*@brief        获取OOM的类型
+*@author       zhaohm3
+*@param[in]    szDescription
+*@retval
+*@note
+* 
+*@since    2014-9-23 15:56
+*@attention
+* 
+*/
+GPrivate Int32_t gcmon_get_oom_type(const char* szDescription)
+{
+    Int32_t sdwSize = ARRAY_SIZE(gaszExhaustMsg);
+    Int32_t i = 0;
+
+    for (i = 0; i < sdwSize; i++)
+    {
+        if (0 == strcmp(gaszExhaustMsg[i], szDescription))
+        {
+            return i;
+        }
+    }
+
+    return 0;
+}
+
+/*!
 *@brief        ResourceExhausted接口回调函数
 *@author       zhaohm3
 *@param[in]    jvmti_env
@@ -333,7 +361,7 @@ GPrivate void JNICALL JVMResourceExhausted(jvmtiEnv *jvmti_env,
     const char* description)
 {
     GCMON_PRINT_FUNC();
-    gcmon_debug_msg("%s --> Exception MSG : %s\n", __FUNCTION__, description);
+    ana_OOM(gcmon_get_perf_tree(), gcmon_get_oom_type(description));
 }
 
 /*!
@@ -360,13 +388,6 @@ GPrivate void JNICALL JVMGarbageCollectionStart(jvmtiEnv *jvmti_env)
         GASSERT(gpPerfTree != NULL);
         sample_init(gpPerfTree);
     }
-
-    //! GC开始时候进行性能采样
-    if (gpPerfTree != NULL)
-    {
-        sample_doit("Start  GC ");
-    }
-
 }
 
 /*!
@@ -383,13 +404,6 @@ GPrivate void JNICALL JVMGarbageCollectionStart(jvmtiEnv *jvmti_env)
 GPrivate void JNICALL JVMGarbageCollectionFinish(jvmtiEnv *jvmti_env)
 {
     GCMON_PRINT_FUNC();
-    /*vmargs_parse_test();*/
-
-    //! GC结束时候进行性能采样
-    if (gpPerfTree != NULL)
-    {
-        sample_doit("Finish GC ");
-    }
 }
 
 /*!

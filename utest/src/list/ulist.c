@@ -193,7 +193,7 @@ GPublic void utest_list_run()
     {
         { 0, TRUE, NULL, NULL, "返回上一级菜单" },
         { 1, TRUE, utest_list, NULL, "测试链表" },
-        { 2, TRUE, utest_strcmp, NULL, "测试strcmp" },
+        /* { 2, TRUE, utest_strcmp, NULL, "测试strcmp" },*/
     };
 
     utest_run(aItems, ARRAY_SIZE(aItems));

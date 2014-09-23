@@ -1,5 +1,5 @@
 /*!**************************************************************
- *@file perf.cpp
+ *@file perf.c
  *@brief    Ω‚ŒˆHotspot PerfMemory
  *@author   zhaohm3
  *@date 2014-9-11 15:03
@@ -580,7 +580,7 @@ ERROR:
 *@attention
 * 
 */
-GPublic void perf_print_verbose(Addr_t address)
+GPrivate void perf_print_verbose(Addr_t address)
 {
     PerfDataPrologueP_t pPerf = (PerfDataPrologueP_t)address;
 

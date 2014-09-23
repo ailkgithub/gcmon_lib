@@ -1,14 +1,14 @@
 /*!**************************************************************
- *@file mem.h
- *@brief    提供与操作系统无关的内存信息获取接口
+ *@file os.h
+ *@brief    提供与操作系统无关的接口
  *@author   zhaohm3
  *@date 2014-9-20 20:14
  *@note
  * 
  ****************************************************************/
 
-#ifndef _mem_h__
-#define _mem_h__
+#ifndef _os_h__
+#define _os_h__
 
 #include "share/share.h"
 
@@ -30,5 +30,6 @@ struct ProccessMemoryInfo
 
 GPublic Bool32_t os_get_physical_memory_info(PhysicalMemoryInfoP_t pMemoryInfo);
 GPublic Bool32_t os_get_process_memory_info(ProccessMemoryInfoP_t pMemoryInfo);
+GPublic Int_t os_getpid();
 
 #endif

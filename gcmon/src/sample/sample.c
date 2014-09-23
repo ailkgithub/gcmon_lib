@@ -91,138 +91,137 @@ GPublic void sample_init(RBTreeP_t pTree)
 #define S_JLONG(s) pdi_get_jlong(s.pItem)
 #define S_DOUBLE(s) pdi_get_double(s.pItem)
 
-GPrivate Double_t s_ticks()
+GPublic Double_t s_ticks()
 {
     return S_DOUBLE(gTicks);
 }
 
-GPrivate Double_t s_frequency()
+GPublic Double_t s_frequency()
 {
     return S_DOUBLE(gFrequency);
 }
 
-GPrivate Double_t s_timstamp()
+GPublic Double_t s_timstamp()
 {
     return (Double_t)(s_ticks() / s_frequency());
 }
 
-GPrivate Double_t s_s0c()
+GPublic Double_t s_s0c()
 {
     return S_DOUBLE(gS0C) / 1024.000;
 }
 
-GPrivate Double_t s_s1c()
+GPublic Double_t s_s1c()
 {
     return S_DOUBLE(gS1C) / 1024.000;
 }
 
-GPrivate Double_t s_s0u()
+GPublic Double_t s_s0u()
 {
     return S_DOUBLE(gS0U) / 1024.000;
 }
 
-GPrivate Double_t s_s1u()
+GPublic Double_t s_s1u()
 {
     return S_DOUBLE(gS1U) / 1024.000;
 }
 
-GPrivate Double_t s_ec()
+GPublic Double_t s_ec()
 {
     return S_DOUBLE(gEC) / 1024.000;
 }
 
-GPrivate Double_t s_eu()
+GPublic Double_t s_eu()
 {
     return S_DOUBLE(gEU) / 1024.000;
 }
 
-GPrivate Double_t s_oc()
+GPublic Double_t s_oc()
 {
     return S_DOUBLE(gOC) / 1024.000;
 }
 
-GPrivate Double_t s_ou()
+GPublic Double_t s_ou()
 {
     return S_DOUBLE(gOU) / 1024.000;
 }
 
-GPrivate Double_t s_pc()
+GPublic Double_t s_pc()
 {
     return S_DOUBLE(gPC) / 1024.000;
 }
 
-GPrivate Double_t s_pu()
+GPublic Double_t s_pu()
 {
     return S_DOUBLE(gPU) / 1024.000;
 }
 
-
-GPrivate Double_t s_s0f()
+GPublic Double_t s_s0f()
 {
     return s_s0c() - s_s0u();
 }
 
-GPrivate Double_t s_s1f()
+GPublic Double_t s_s1f()
 {
     return s_s1c() - s_s1u();
 }
 
-GPrivate Double_t s_ef()
+GPublic Double_t s_ef()
 {
     return s_ec() - s_eu();
 }
 
-GPrivate Double_t s_of()
+GPublic Double_t s_of()
 {
     return s_oc() - s_ou();
 }
 
-GPrivate Double_t s_pf()
+GPublic Double_t s_pf()
 {
     return s_pc() - s_pu();
 }
 
-GPrivate Double_t s_s0p()
+GPublic Double_t s_s0p()
 {
     return (Double_t)((1.000 - ((s_s0c() - s_s0u()) / s_s0c())) * 100.000);
 }
 
-GPrivate Double_t s_s1p()
+GPublic Double_t s_s1p()
 {
     return (Double_t)((1.000 - ((s_s1c() - s_s1u()) / s_s1c())) * 100.000);
 }
 
-GPrivate Double_t s_ep()
+GPublic Double_t s_ep()
 {
     return (Double_t)((1.000 - ((s_ec() - s_eu()) / s_ec())) * 100.000);
 }
 
-GPrivate Double_t s_op()
+GPublic Double_t s_op()
 {
     return (Double_t)((1.000 - ((s_oc() - s_ou()) / s_oc())) * 100.000);
 }
 
-GPrivate Double_t s_pp()
+GPublic Double_t s_pp()
 {
     return (Double_t)((1.000 - ((s_pc() - s_pu()) / s_pc())) * 100.000);
 }
 
-GPrivate jlong s_ygc()
+GPublic jlong s_ygc()
 {
     return S_JLONG(gYGC);
 }
 
-GPrivate jlong s_fgc()
+GPublic jlong s_fgc()
 {
     return S_JLONG(gFGC);
 }
 
-GPrivate Double_t s_ygct()
+GPublic Double_t s_ygct()
 {
     return (Double_t)(S_DOUBLE(gYGCT) / s_frequency());
 }
 
-GPrivate Double_t s_aygct()
+GPublic Double_t s_aygct()
 {
     return s_ygct() / S_DOUBLE(gYGC);
 }
@@ -235,12 +234,12 @@ GPrivate Double_t s_cygct()
     return dfRet;
 }
 
-GPrivate Double_t s_fgct()
+GPublic Double_t s_fgct()
 {
     return (Double_t)(S_DOUBLE(gFGCT) / s_frequency());
 }
 
-GPrivate Double_t s_afgct()
+GPublic Double_t s_afgct()
 {
     return s_fgct() / S_DOUBLE(gFGC);
 }
@@ -253,67 +252,67 @@ GPrivate Double_t s_cfgct()
     return dfRet;
 }
 
-GPrivate Double_t s_gct()
+GPublic Double_t s_gct()
 {
     return (Double_t)((S_DOUBLE(gYGCT) + S_DOUBLE(gFGCT)) / s_frequency());
 }
 
-GPrivate Double_t s_ngcmn()
+GPublic Double_t s_ngcmn()
 {
     return S_DOUBLE(gNGCMN) / 1024.000;
 }
 
-GPrivate Double_t s_ngcmx()
+GPublic Double_t s_ngcmx()
 {
     return S_DOUBLE(gNGCMX) / 1024.000;
 }
 
-GPrivate Double_t s_ngc()
+GPublic Double_t s_ngc()
 {
     return S_DOUBLE(gNGC) / 1024.000;
 }
 
-GPrivate Double_t s_ogcmn()
+GPublic Double_t s_ogcmn()
 {
     return S_DOUBLE(gOGCMN) / 1024.000;
 }
 
-GPrivate Double_t s_ogcmx()
+GPublic Double_t s_ogcmx()
 {
     return S_DOUBLE(gOGCMX) / 1024.000;
 }
 
-GPrivate Double_t s_ogc()
+GPublic Double_t s_ogc()
 {
     return S_DOUBLE(gOGC) / 1024.000;
 }
 
-GPrivate Double_t s_pgcmn()
+GPublic Double_t s_pgcmn()
 {
     return S_DOUBLE(gPGCMN) / 1024.000;
 }
 
-GPrivate Double_t s_pgcmx()
+GPublic Double_t s_pgcmx()
 {
     return S_DOUBLE(gPGCMX) / 1024.000;
 }
 
-GPrivate Double_t s_pgc()
+GPublic Double_t s_pgc()
 {
     return S_DOUBLE(gPGC) / 1024.000;
 }
 
-GPrivate Double_t s_ygctp()
+GPublic Double_t s_ygctp()
 {
     return (Double_t)((1.000 - ((s_gct() - s_ygct()) / s_gct())) * 100.000);
 }
 
-GPrivate Double_t s_fgctp()
+GPublic Double_t s_fgctp()
 {
     return (Double_t)((1.000 - ((s_gct() - s_fgct()) / s_gct())) * 100.000);
 }
 
-GPrivate Double_t s_gctp()
+GPublic Double_t s_gctp()
 {
     return (Double_t)((1.000 - ((s_timstamp() - s_gct()) / s_timstamp())) * 100.000);
 }
@@ -333,9 +332,9 @@ GPrivate struct
     };
 } gaSout[]=
 {
-    { "Timestamp", S_FD, s_timstamp },
+    { "Total Time(sec)", S_FD, s_timstamp },
 
-    { NULL, S_FS, NULL },
+    { "Generation Space(KB)", S_FS, NULL },
 
     { "S0C", S_FD, s_s0c },
     { "S1C", S_FD, s_s1c },
@@ -343,7 +342,7 @@ GPrivate struct
     { "OC", S_FD, s_oc },
     { "PC", S_FD, s_pc },
 
-    { NULL, S_FS, NULL },
+    { "Generation Space Usage(KB)", S_FS, NULL },
 
     { "S0U", S_FD, s_s0u },
     { "S0F", S_FD, s_s0f },
@@ -356,7 +355,7 @@ GPrivate struct
     { "PU", S_FD, s_pu },
     { "PF", S_FD, s_pf },
 
-    { NULL, S_FS, NULL },
+    { "Generation Space Usage(%)", S_FS, NULL },
 
     { "S0P", S_FD, s_s0p },
     { "S1P", S_FD, s_s1p },
@@ -364,7 +363,7 @@ GPrivate struct
     { "OP", S_FD, s_op },
     { "PP", S_FD, s_pp },
 
-    { NULL, S_FS, NULL },
+    { "Generation Space(KB)", S_FS, NULL },
 
     { "NGCMIN", S_FD, s_ngcmn },
     { "NGCMAX", S_FD, s_ngcmx },
@@ -376,32 +375,48 @@ GPrivate struct
     { "PGCMAX", S_FD, s_pgcmx },
     { "PGC", S_FD, s_pgc },
 
-    { NULL, S_FS, NULL },
+    { "GC Information", S_FS, NULL },
 
     { "YGC", S_FL, s_ygc },
     { "YGCT", S_FD, s_ygct },
     { "AYGCT", S_FD, s_aygct },
-    { "CYGCT", S_FD, s_cygct },
+    /*{ "CYGCT", S_FD, s_cygct },*/
     { "YGCTP", S_FD, s_ygctp },
 
     { "FGC", S_FL, s_fgc },
     { "FGCT", S_FD, s_fgct },
     { "AFGCT", S_FD, s_afgct },
-    { "CFGCT", S_FD, s_cfgct },
+    /*{ "CFGCT", S_FD, s_cfgct },*/
     { "FGCTP", S_FD, s_fgctp },
     { "GCT", S_FD, s_gct },
     { "GCTP", S_FD, s_gctp },
 };
 
-#define s_printf printf
-GPrivate void s_out(String_t szContext)
+/*!
+*@brief        将gaSout的所有项输出到一行
+*@author       zhaohm3
+*@param[in]    pFile
+*@param[in]    szContext
+*@retval
+*@note
+* 
+*@since    2014-9-23 17:52
+*@attention
+* 
+*/
+GPublic void s_out_row(FILE *pFile, String_t szContext)
 {
-    Int32_t sdwLen = sizeof(gaSout) / sizeof(gaSout[0]);
+    Int32_t sdwLen = ARRAY_SIZE(gaSout);
     Int32_t i = 0;
+
+    if (NULL == pFile)
+    {
+        pFile = stdout;
+    }
 
     if (szContext != NULL)
     {
-        s_printf(szContext);
+        fprintf(pFile, szContext);
     }
 
     for (i = 0; i < sdwLen; i++)
@@ -409,22 +424,68 @@ GPrivate void s_out(String_t szContext)
         switch (gaSout[i].sdwType)
         {
         case S_FD:
-            s_printf("%s: "FMTF"\t", gaSout[i].szHeader, gaSout[i].pfnDouble());
+            fprintf(pFile, "%s: "FMTF"\t", gaSout[i].szHeader, gaSout[i].pfnDouble());
             break;
         case S_FL:
-            s_printf("%s: "FMTL"\t", gaSout[i].szHeader, gaSout[i].pfnJlong());
+            fprintf(pFile, "%s: "FMTL"\t", gaSout[i].szHeader, gaSout[i].pfnJlong());
             break;
         case S_FS:
-            s_printf(" | \t");
+            fprintf(pFile, " | \t");
             break;
         default:
             break;
         }
     }
 
-    s_printf("\n");
+    fprintf(pFile, "\n");
 }
 
+
+/*!
+*@brief        将gaSout的所有项输出到一列
+*@author       zhaohm3
+*@param[in]    pFile
+*@param[in]    szContext
+*@retval
+*@note
+* 
+*@since    2014-9-23 17:54
+*@attention
+* 
+*/
+GPublic void s_out_line(FILE *pFile, String_t szContext)
+{
+    Int32_t sdwLen = ARRAY_SIZE(gaSout);
+    Int32_t i = 0;
+
+    if (NULL == pFile)
+    {
+        pFile = stdout;
+    }
+
+    if (szContext != NULL)
+    {
+        fprintf(pFile, "%s\n", szContext);
+    }
+
+    for (i = 0; i < sdwLen; i++)
+    {
+        switch (gaSout[i].sdwType)
+        {
+        case S_FD:
+            fprintf(pFile, "%s: "FMTF"\n", gaSout[i].szHeader, gaSout[i].pfnDouble());
+            break;
+        case S_FL:
+            fprintf(pFile, "%s: "FMTL"\n", gaSout[i].szHeader, gaSout[i].pfnJlong());
+            break;
+        case S_FS:
+            fprintf(pFile, "\n---> %s <---\n", gaSout[i].szHeader);
+            break;
+        default:
+            break;
+        }
+    }
+}
 
 /*!
 *@brief        对外接口，采样输出
@@ -439,5 +500,5 @@ GPrivate void s_out(String_t szContext)
 */
 GPublic void sample_doit(String_t szContext)
 {
-    s_out(szContext);
+    s_out_row(NULL, szContext);
 }

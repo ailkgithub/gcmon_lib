@@ -1,18 +1,19 @@
 /*!**************************************************************
- *@file mem.c
- *@brief    提供与操作系统无关的内存信息获取接口
+ *@file os.c
+ *@brief    提供与操作系统无关的接口
  *@author   zhaohm3
  *@date 2014-9-20 20:13
  *@note
  * 
  ****************************************************************/
 
-#include "os/mem.h"
+#include "os/os.h"
 
 #ifdef WIN32
 
 #include <windows.h>
 #include <psapi.h>
+#include <process.h>
 
 /*!
 *@brief        获取物理主机的内存信息
@@ -69,6 +70,21 @@ GPublic Bool32_t os_get_process_memory_info(ProccessMemoryInfoP_t pMemoryInfo)
     return bSuccess;
 }
 
+/*!
+*@brief        获取进程的pid
+*@author       zhaohm3
+*@retval
+*@note
+* 
+*@since    2014-9-23 15:02
+*@attention
+* 
+*/
+GPublic Int_t os_getpid()
+{
+    return (Int_t)_getpid();
+}
+
 #elif defined(LINUX) || defined(SOLARIS)
 
 #include <sys/sysinfo.h>
@@ -119,44 +135,35 @@ GPublic Bool32_t os_get_physical_memory_info(PhysicalMemoryInfoP_t pMemoryInfo)
 GPublic Bool32_t os_get_process_memory_info(ProccessMemoryInfoP_t pMemoryInfo)
 {
     Bool32_t bSuccess = FALSE;
-    Int32_t sdwFileID = -1, sdwReaded = -1;
+    Int32_t sdwFileID = -1, sdwReaded = -1, sdwScanf = 0;
     Char_t szMemoryInfo[1024] = { 0 }, szFileName[256] = { 0 };
-    Addr_t pHead = NULL, pTail = NULL;
+    String_t szItor = NULL;
     Size64_t lwPhysicalSize = 0, lwVirtualSize = 0;
 
     sprintf(szFileName, "/proc/%d/status", getpid());
 
     sdwFileID = open(szFileName, 0, 0);
     GCMON_CHECK_COND(sdwFileID != -1, OSERROR);
-
     sdwReaded = read(sdwFileID, szMemoryInfo, sizeof(szMemoryInfo));
     GCMON_CHECK_COND(sdwReaded > 0 && sdwReaded < 1024, OSERROR);
     szMemoryInfo[sdwReaded - 1] = '\0';
 
-    pHead = strstr(szMemoryInfo, "VmRSS:\t");
-    GCMON_CHECK_NULL(pHead, OSERROR);
-    pHead = pHead + strlen("VmRSS:\t");
+    szItor = strstr(szMemoryInfo, "VmRSS:\t");
+    GCMON_CHECK_NULL(szItor, OSERROR);
+    szItor = szItor + strlen("VmRSS:\t");
+    sdwScanf = sscanf(szItor, FMTL, &lwPhysicalSize);
+    GCMON_CHECK_COND(1 == sdwScanf, OSERROR);
 
-    pTail = strstr(pHead, " kB");
-    GCMON_CHECK_NULL(pTail, OSERROR);
-    pTail[0] = '\0';
-
-    lwPhysicalSize = atoll(pHead);
-
-    pHead = strstr(szMemoryInfo, "VmSize:\t");
-    GCMON_CHECK_NULL(pHead, OSERROR);
-    pHead = pHead + strlen("VmSize:\t");
-
-    pTail = strstr(pHead, " kB");
-    GCMON_CHECK_NULL(pTail, OSERROR);
-    pTail[0] = '\0';
-
-    lwVirtualSize = atoll(pHead);
+    szItor = strstr(szMemoryInfo, "VmSize:\t");
+    GCMON_CHECK_NULL(szItor, OSERROR);
+    szItor = szItor + strlen("VmSize:\t");
+    sdwScanf = sscanf(szItor, FMTL, &lwVirtualSize);
+    GCMON_CHECK_COND(1 == sdwScanf, OSERROR);
 
     if (pMemoryInfo != NULL)
     {
-        pMemoryInfo->lwPhysicalSize = lwPhysicalSize * 1024L;
-        pMemoryInfo->lwVirtualSize = lwVirtualSize * 1024L;
+        pMemoryInfo->lwPhysicalSize = lwPhysicalSize * KB;
+        pMemoryInfo->lwVirtualSize = lwVirtualSize * KB;
     }
 
     bSuccess = TRUE;
@@ -170,6 +177,22 @@ OSERROR:
     return bSuccess;
 }
 
+/*!
+*@brief        获取进程的pid
+*@author       zhaohm3
+*@retval
+*@note
+* 
+*@since    2014-9-23 15:02
+*@attention
+* 
+*/
+GPublic Int_t os_getpid()
+{
+    return (Int_t)getpid();
+}
+
 #else
 #error UnsupportedSystem
 #endif
+
