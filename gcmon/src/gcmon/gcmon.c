@@ -11,13 +11,6 @@
 #include "sample/sample.h"
 #include "ana/ana.h"
 
-//! 用于处理java.lang.OutOfMemoryError异常
-#define GOOM_HEAP_SPACE     0                           //!< Java heap space
-#define GOOM_OVERHEAD_LIMIT 1                           //!< GC overhead limit exceeded
-#define GOOM_NATIVE_THREAD  2                           //!< unable to create new native thread
-#define GOOM_PERM_SPACE     3                           //!< PermGen space
-#define GOOM_ARRAY_SIZE     4                           //!< Requested array size exceeds VM limit
-
 //! 当发生OutOfMemoryError异常时，由JVM抛出的内存资源耗尽的提示
 GPrivate String_t gaszExhaustMsg[] =
 {
@@ -47,6 +40,7 @@ GPrivate jrawMonitorID gMonitorID = NULL;           //!< 管程变量，用于同步
 GPrivate Addr_t gPerfMemory = NULL;                 //!< 用于存放JVM性能计数器的共享内存区的地址
 GPrivate RBTreeP_t gpPerfTree = NULL;               //!< 通过pPerfMemory构建的性能树
 GPrivate Perf_Attach_t gfnPerf_Attach = NULL;       //!< jvm动态库中Perf_Attach接口的地址
+GPrivate String_t gszAgentOpts = NULL;              //!< 传递给动态库gcmon的参数
 
 /*!
 *@brief        获取JVM共享的PerfMemory地址
@@ -104,6 +98,21 @@ GPublic RBTreeP_t gcmon_get_perf_tree()
 }
 
 /*!
+*@brief        对外接口，获取传递给动态库gcmon的选项
+*@author       zhaohm3
+*@retval
+*@note
+*
+*@since    2014-9-22 15:20
+*@attention
+*
+*/
+GPublic String_t gcmon_get_agent_opts()
+{
+    return gszAgentOpts;
+}
+
+/*!
 *@brief        多线程环境，进入临界区
 *@author       zhaohm3
 *@retval
@@ -132,6 +141,34 @@ GPrivate jvmtiError gcmon_monitor_exit()
 {
     return gJvmtiEnv->RawMonitorExit(gpJvmtiEnv, gMonitorID);
 }
+
+/*!
+*@brief        获取OOM的类型
+*@author       zhaohm3
+*@param[in]    szDescription
+*@retval
+*@note
+*
+*@since    2014-9-23 15:56
+*@attention
+*
+*/
+GPrivate Int32_t gcmon_get_oom_type(const char* szDescription)
+{
+    Int32_t sdwSize = ARRAY_SIZE(gaszExhaustMsg);
+    Int32_t i = 0;
+
+    for (i = 0; i < sdwSize; i++)
+    {
+        if (0 == os_strcmp(gaszExhaustMsg[i], szDescription))
+        {
+            return i;
+        }
+    }
+
+    return 0;
+}
+
 
 /*!
 *@brief        VMInit接口回调函数
@@ -291,8 +328,8 @@ GPrivate void JNICALL JVMNativeMethodBind(jvmtiEnv *jvmti_env,
                 && szName != NULL
                 && szSig != NULL
                 && NULL == szGsig
-                && 0 == strcmp(szName, "attach")
-                && 0 == strcmp(szSig, "(Ljava/lang/String;II)Ljava/nio/ByteBuffer;"))
+                && 0 == os_strcmp(szName, "attach")
+                && 0 == os_strcmp(szSig, "(Ljava/lang/String;II)Ljava/nio/ByteBuffer;"))
             {
                 gfnPerf_Attach = (Perf_Attach_t)address;
 
@@ -310,33 +347,6 @@ GPrivate void JNICALL JVMNativeMethodBind(jvmtiEnv *jvmti_env,
 
         error = gcmon_monitor_exit();
     }
-}
-
-/*!
-*@brief        获取OOM的类型
-*@author       zhaohm3
-*@param[in]    szDescription
-*@retval
-*@note
-* 
-*@since    2014-9-23 15:56
-*@attention
-* 
-*/
-GPrivate Int32_t gcmon_get_oom_type(const char* szDescription)
-{
-    Int32_t sdwSize = ARRAY_SIZE(gaszExhaustMsg);
-    Int32_t i = 0;
-
-    for (i = 0; i < sdwSize; i++)
-    {
-        if (0 == strcmp(gaszExhaustMsg[i], szDescription))
-        {
-            return i;
-        }
-    }
-
-    return 0;
 }
 
 /*!
@@ -388,6 +398,7 @@ GPrivate void JNICALL JVMGarbageCollectionStart(jvmtiEnv *jvmti_env)
         GASSERT(gpPerfTree != NULL);
         sample_init(gpPerfTree);
     }
+    sample_doit("Start  GC");
 }
 
 /*!
@@ -404,6 +415,7 @@ GPrivate void JNICALL JVMGarbageCollectionStart(jvmtiEnv *jvmti_env)
 GPrivate void JNICALL JVMGarbageCollectionFinish(jvmtiEnv *jvmti_env)
 {
     GCMON_PRINT_FUNC();
+    sample_doit("Finish GC");
 }
 
 /*!
@@ -418,7 +430,7 @@ GPrivate void JNICALL JVMGarbageCollectionFinish(jvmtiEnv *jvmti_env)
 */
 GPrivate void JVMZeroCapabilities()
 {
-    memset(&gCapabilities, 0, sizeof(jvmtiCapabilities));
+    os_memset(&gCapabilities, 0, sizeof(jvmtiCapabilities));
 }
 
 /*!
@@ -462,7 +474,7 @@ GPrivate void JVMInitCapabilities()
 */
 GPrivate void JVMZeroCallbacks()
 {
-    memset(&gCallbacks, 0, sizeof(jvmtiEventCallbacks));
+    os_memset(&gCallbacks, 0, sizeof(jvmtiEventCallbacks));
 }
 
 /*!
@@ -605,7 +617,7 @@ JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *jvm, char *options, void *reserved)
     ret = (*jvm)->GetEnv(jvm, (void **)&gpJvmtiEnv, JVMTI_VERSION_1_1);
     if (ret != JNI_OK || NULL == gpJvmtiEnv)
     {
-        printf("ERROR: Unable to access JVMTI!");
+        os_printf("ERROR: Unable to access JVMTI!");
         return ret;
     }
 
@@ -613,7 +625,9 @@ JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *jvm, char *options, void *reserved)
     error = JVMInitJvmtiEnv();
     GCMON_CHECK_ERROR(error, "ERROR: Can't Init JVMTI Env.", ERROR);
 
+    gszAgentOpts = options;
     gcmon_debug_fopen();
+
     return JNI_OK;
 
 ERROR:

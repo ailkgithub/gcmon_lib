@@ -13,6 +13,14 @@
 #include "share/share.h"
 #include "perf/perf.h"
 
+//! 用于处理java.lang.OutOfMemoryError异常
+#define GOOM_HEAP_SPACE     0                           //!< Java heap space
+#define GOOM_OVERHEAD_LIMIT 1                           //!< GC overhead limit exceeded
+#define GOOM_NATIVE_THREAD  2                           //!< unable to create new native thread
+#define GOOM_PERM_SPACE     3                           //!< PermGen space
+#define GOOM_ARRAY_SIZE     4                           //!< Requested array size exceeds VM limit
+
 GPublic RBTreeP_t gcmon_get_perf_tree();
+GPublic String_t gcmon_get_agent_opts();
 
 #endif

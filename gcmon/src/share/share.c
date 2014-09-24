@@ -8,17 +8,30 @@
  ****************************************************************/
 
 #include "share/share.h"
+#include "args/args.h"
 
 //! 记录调试信息
-GPrivate FILE *gFile = NULL;
+GPrivate FILE *gpDebugFile = NULL;
 
 //! 打开gFile
 GPublic void gcmon_debug_fopen()
 {
 #ifdef DEBUG
-    if (NULL == gFile)
+    if (NULL == gpDebugFile)
     {
-        gFile = fopen("gcmon_debug.txt", "w+");
+        Char_t szFileName[256] = { 0 };
+        String_t szOutpath = agentargs_get_outpath();
+        String_t szOutname = agentargs_get_outname();
+
+        os_sprintf(szFileName, "%s%s_pid_%d_debug",
+            (szOutpath != NULL) ? szOutpath : "",
+            (szOutname != NULL) ? szOutname : "gcmon",
+            os_getpid());
+
+        GFREE(szOutpath);
+        GFREE(szOutname);
+
+        gpDebugFile = os_fopen(szFileName, "w+");
     }
 #endif
 }
@@ -26,27 +39,27 @@ GPublic void gcmon_debug_fopen()
 //! 关闭gFile
 GPublic void gcmon_debug_fclose()
 {
-    if (gFile != NULL)
+    if (gpDebugFile != NULL)
     {
-        fflush(gFile);
-        fclose(gFile);
+        os_fflush(gpDebugFile);
+        os_fclose(gpDebugFile);
     }
     else
     {
-        fflush(stdout);
+        os_fflush(stdout);
     }
 }
 
 //! flush文件缓存
 GPublic void gcmon_debug_flush()
 {
-    if (gFile != NULL)
+    if (gpDebugFile != NULL)
     {
-        fflush(gFile);
+        os_fflush(gpDebugFile);
     }
     else
     {
-        fflush(stdout);
+        os_fflush(stdout);
     }
 }
 
@@ -68,13 +81,13 @@ int gcmon_debug_msg(const char *fmt, ...)
     va_list args;
 
     va_start(args, fmt);
-    if (gFile != NULL)
+    if (gpDebugFile != NULL)
     {
-        len = vfprintf(gFile, fmt, args);
+        len = os_vfprintf(gpDebugFile, fmt, args);
     }
     else
     {
-        len = vprintf(fmt, args);
+        len = os_vprintf(fmt, args);
     }
     va_end(args);
     return len;

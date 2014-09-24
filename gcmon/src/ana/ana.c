@@ -9,75 +9,85 @@
 
 #include "ana/ana.h"
 #include "args/args.h"
-#include "os/os.h"
 #include "sample/sample.h"
+#include "gcmon/gcmon.h"
 
+//! JVM运行时的内存信息
 typedef struct MemAnaInfo MemAnaInfo_t, *MemAnaInfoP_t;
 struct MemAnaInfo
 {
-    PhysicalMemoryInfo_t sPhys;
-    ProccessMemoryInfo_t sProc;
+    PhysicalMemoryInfo_t sPhys;         //!< 物理内存使用情况
+    ProccessMemoryInfo_t sProc;         //!< JVM进程的内存使用情况
 
-    String_t szJavaCmd;
-    String_t szVMArgs;
+    Size64_t lwInitialHeapSize;         //!< -XX:InitialHeapSize
+    Size64_t lwMaxHeapSize;             //!< -XX:MaxHeapSize
+    Size64_t lwNewSize;                 //!< -XX:NewSize
+    Size64_t lwMaxNewSize;              //!< -XX:MaxNewSize
+    Size64_t lwOldSize;                 //!< -XX:OldSize
+    Size64_t lwPermSize;                //!< -XX:PermSize
+    Size64_t lwMaxPermSize;             //!< -XX:MaxPermSize
+    Size64_t lwThreadStackSize;         //!< -XX:ThreadStackSize
 
-    Size64_t lwInitialHeapSize;
-    Size64_t lwMaxHeapSize;
-    Size64_t lwNewSize;
-    Size64_t lwMaxNewSize;
-    Size64_t lwOldSize;
-    Size64_t lwPermSize;
-    Size64_t lwMaxPermSize;
-    Size64_t lwThreadStackSize;
+    String_t szInitialHeapSize;         //!< -XX:InitialHeapSize
+    String_t szMaxHeapSize;             //!< -XX:MaxHeapSize
+    String_t szNewSize;                 //!< -XX:NewSize
+    String_t szMaxNewSize;              //!< -XX:MaxNewSize
+    String_t szOldSize;                 //!< -XX:OldSize
+    String_t szPermSize;                //!< -XX:PermSize
+    String_t szMaxPermSize;             //!< -XX:MaxPermSize
+    String_t szThreadStackSize;         //!< -XX:ThreadStackSize
 
-    String_t szInitialHeapSize;
-    String_t szMaxHeapSize;
-    String_t szNewSize;
-    String_t szMaxNewSize;
-    String_t szOldSize;
-    String_t szPermSize;
-    String_t szMaxPermSize;
-    String_t szThreadStackSize;
+    String_t szJavaCmd;                 //!< Java Command
+    String_t szVMArgs;                  //!< JVM Arguments
+    String_t szAgentOpts;               //!< GCMON Agent Options
 };
 
-GPrivate Size64_t glwOSOverheadMemorySize = 100 * MB;               //!< 如果操作系统的剩余可用内存不足100M了，则建议清空缓存
-GPrivate Double_t gdfJVMHeapFreeRatio = 0.95;                       //!< 如果JVM的实际内存使用量已经到了MaxHeapSize的90%了，HeapSize已经用完了
+//! 如果操作系统的剩余可用内存不足100M了，则建议清空缓存
+GPrivate Size64_t glwOSOverheadMemorySize = 100 * MB;
 
-GPrivate FILE *ana_file_open(Int_t pid)
+//! 如果JVM的实际内存使用量已经到了MaxHeapSize的90%了，HeapSize已经用完了
+GPrivate Double_t gdfJVMHeapFreeRatio = 0.95;
+
+/*!
+*@brief        根据AgentOptions参数，打开存放Analyze结果的文件
+*@author       zhaohm3
+*@param[in]    pid
+*@retval
+*@note
+* 
+*@since    2014-9-24 17:46
+*@attention
+* 
+*/
+GPrivate FILE *ana_fopen(Int_t pid)
 {
-    Char_t szFileName[32] = { 0 };
+    Char_t szFileName[256] = { 0 };
+    String_t szOutpath = agentargs_get_outpath();
+    String_t szOutname = agentargs_get_outname();
 
-    sprintf(szFileName, "gcmon_pid_%d.out", pid);
-    return fopen(szFileName, "w+");
+    os_sprintf(szFileName, "%s%s_pid_%d",
+        (szOutpath != NULL) ? szOutpath : "",
+        (szOutname != NULL) ? szOutname : "gcmon",
+        pid);
+
+    GFREE(szOutpath);
+    GFREE(szOutname);
+
+    return os_fopen(szFileName, "w+");
 }
 
-GPrivate void ana_file_close(FILE *pFile)
-{
-    if (pFile != NULL)
-    {
-        fclose(pFile);
-    }
-}
-
-GPrivate void ana_file_flush(FILE *pFile)
-{
-    if (pFile != NULL)
-    {
-        fflush(pFile);
-    }
-}
-
-GPrivate Int_t ana_file_print(FILE *pFile, const char *fmt, ...)
-{
-    Int_t len = 0;
-    va_list args;
-
-    va_start(args, fmt);
-    len = vfprintf(pFile, fmt, args);
-    va_end(args);
-    return len;
-}
-
+/*!
+*@brief        收集JVM的内存以及运行时参数信息
+*@author       zhaohm3
+*@param[in]    pPdiTree
+*@param[in]    pMemInfo
+*@retval
+*@note
+* 
+*@since    2014-9-24 17:49
+*@attention
+* 
+*/
 GPrivate void mai_gather_info(RBTreeP_t pPdiTree, MemAnaInfoP_t pMemInfo)
 {
     GCMON_CHECK_NULL(pMemInfo, ERROR);
@@ -85,6 +95,7 @@ GPrivate void mai_gather_info(RBTreeP_t pPdiTree, MemAnaInfoP_t pMemInfo)
     os_get_process_memory_info(&pMemInfo->sProc);
     pMemInfo->szJavaCmd = args_get_javacmd(pPdiTree);
     pMemInfo->szVMArgs = args_get_vmargs(pPdiTree);
+    pMemInfo->szAgentOpts = args_get_agentargs();
     pMemInfo->lwInitialHeapSize = vmargs_parse_InitialHeapSize(pMemInfo->szVMArgs, &pMemInfo->szInitialHeapSize);
     pMemInfo->lwMaxHeapSize = vmargs_parse_MaxHeapSize(pMemInfo->szVMArgs, &pMemInfo->szMaxHeapSize);
     pMemInfo->lwNewSize = vmargs_parse_NewSize(pMemInfo->szVMArgs, &pMemInfo->szNewSize);
@@ -94,10 +105,22 @@ GPrivate void mai_gather_info(RBTreeP_t pPdiTree, MemAnaInfoP_t pMemInfo)
     pMemInfo->lwMaxPermSize = vmargs_parse_MaxPermSize(pMemInfo->szVMArgs, &pMemInfo->szMaxPermSize);
     pMemInfo->lwThreadStackSize = vmargs_parse_ThreadStackSize(pMemInfo->szVMArgs, &pMemInfo->szThreadStackSize);
 
+
 ERROR:
     return;
 }
 
+/*!
+*@brief        释放JVM参数信息所占用的存储空间
+*@author       zhaohm3
+*@param[in]    pMemInfo
+*@retval
+*@note
+* 
+*@since    2014-9-24 17:50
+*@attention
+* 
+*/
 GPrivate void mai_release_info(MemAnaInfoP_t pMemInfo)
 {
     GCMON_CHECK_NULL(pMemInfo, ERROR);
@@ -109,97 +132,129 @@ GPrivate void mai_release_info(MemAnaInfoP_t pMemInfo)
     GFREE(pMemInfo->szPermSize);
     GFREE(pMemInfo->szMaxPermSize);
     GFREE(pMemInfo->szThreadStackSize);
-    memset(pMemInfo, 0, sizeof(MemAnaInfo_t));
+    os_memset(pMemInfo, 0, sizeof(MemAnaInfo_t));
 
 ERROR:
     return;
 }
 
+/*!
+*@brief        输出JVM运行时信息
+*@author       zhaohm3
+*@param[in]    pFile
+*@param[in]    pMemInfo
+*@retval
+*@note
+* 
+*@since    2014-9-24 17:50
+*@attention
+* 
+*/
 GPrivate void mai_print_verbose(FILE* pFile, MemAnaInfoP_t pMemInfo)
 {
     GCMON_CHECK_NULL(pFile, ERROR);
     GCMON_CHECK_NULL(pMemInfo, ERROR);
 
-    ana_file_print(pFile, "\n1.Operation System Memory Usage Information: \n\n");
+    os_fprintf(pFile, "\n1.Operation System Memory Usage Information: \n\n");
 
-    ana_file_print(pFile, "Physical Memory Total Size : "FMTL"KB\n", BYTE2KB(pMemInfo->sPhys.lwTotalPhys));
-    ana_file_print(pFile, "Physical Memory Available Size : "FMTL"KB\n", BYTE2KB(pMemInfo->sPhys.lwAvailPhys));
+    os_fprintf(pFile, "Physical Memory Total Size : "FMTL"KB\n", BYTE2KB(pMemInfo->sPhys.lwTotalPhys));
+    os_fprintf(pFile, "Physical Memory Available Size : "FMTL"KB\n", BYTE2KB(pMemInfo->sPhys.lwAvailPhys));
 
-    ana_file_print(pFile, "\n\n2.JVM Process Memory Usage Information: \n\n");
+    os_fprintf(pFile, "\n\n2.JVM Process Memory Usage Information: \n\n");
 
-    ana_file_print(pFile, "Process Physical Memory Size : "FMTL"KB\n", BYTE2KB(pMemInfo->sProc.lwPhysicalSize));
-    ana_file_print(pFile, "Process Virtual Memory Size : "FMTL"KB\n", BYTE2KB(pMemInfo->sProc.lwVirtualSize));
+    os_fprintf(pFile, "Process Physical Memory Size : "FMTL"KB\n", BYTE2KB(pMemInfo->sProc.lwPhysicalSize));
+    os_fprintf(pFile, "Process Virtual Memory Size : "FMTL"KB\n", BYTE2KB(pMemInfo->sProc.lwVirtualSize));
 
-    ana_file_print(pFile, "\n\n3.JVM Arguments Information: \n\n");
+    os_fprintf(pFile, "\n\n3.JVM Arguments Information: \n\n");
 
-    ana_file_print(pFile, "JVM Arguments : %s \n", pMemInfo->szVMArgs);
-    ana_file_print(pFile, "Java Command : %s \n", pMemInfo->szJavaCmd);
+    if (pMemInfo->szVMArgs != NULL)
+    {
+        os_fprintf(pFile, "JVM Arguments : %s \n", pMemInfo->szVMArgs);
+    }
 
-    ana_file_print(pFile, "\n\n4.JVM Memory Setting Options Information: \n\n");
+    os_fprintf(pFile, "Java Command : %s \n", pMemInfo->szJavaCmd);
+
+    if (pMemInfo->szAgentOpts != NULL)
+    {
+        os_fprintf(pFile, "GCMON Options : %s \n", pMemInfo->szAgentOpts);
+    }
+
+    os_fprintf(pFile, "\n\n4.JVM Memory Setting Options Information: \n\n");
 
     if (pMemInfo->szInitialHeapSize != NULL)
     {
-        ana_file_print(pFile, "InitialHeapSize : "FMTL"KB --> %s\n",
+        os_fprintf(pFile, "InitialHeapSize : "FMTL"KB --> %s\n",
             BYTE2KB(pMemInfo->lwInitialHeapSize),
             pMemInfo->szInitialHeapSize);
     }
 
     if (pMemInfo->szMaxHeapSize != NULL)
     {
-        ana_file_print(pFile, "MaxHeapSize : "FMTL"KB --> %s\n",
+        os_fprintf(pFile, "MaxHeapSize : "FMTL"KB --> %s\n",
             BYTE2KB(pMemInfo->lwMaxHeapSize),
             pMemInfo->szMaxHeapSize);
     }
 
     if (pMemInfo->szNewSize != NULL)
     {
-        ana_file_print(pFile, "NewSize : "FMTL"KB --> %s\n",
+        os_fprintf(pFile, "NewSize : "FMTL"KB --> %s\n",
             BYTE2KB(pMemInfo->lwNewSize),
             pMemInfo->szNewSize);
     }
 
     if (pMemInfo->szMaxNewSize != NULL)
     {
-        ana_file_print(pFile, "MaxNewSize : "FMTL"KB --> %s\n",
+        os_fprintf(pFile, "MaxNewSize : "FMTL"KB --> %s\n",
             BYTE2KB(pMemInfo->lwMaxNewSize),
             pMemInfo->szMaxNewSize);
     }
 
     if (pMemInfo->szOldSize != NULL)
     {
-        ana_file_print(pFile, "OldSize : "FMTL"KB --> %s\n",
+        os_fprintf(pFile, "OldSize : "FMTL"KB --> %s\n",
             BYTE2KB(pMemInfo->lwOldSize),
             pMemInfo->szOldSize);
     }
 
     if (pMemInfo->szPermSize != NULL)
     {
-        ana_file_print(pFile, "PermSize : "FMTL"KB --> %s\n",
+        os_fprintf(pFile, "PermSize : "FMTL"KB --> %s\n",
             BYTE2KB(pMemInfo->lwPermSize),
             pMemInfo->szPermSize);
     }
 
     if (pMemInfo->szMaxPermSize != NULL)
     {
-        ana_file_print(pFile, "MaxPermSize : "FMTL"KB --> %s\n",
+        os_fprintf(pFile, "MaxPermSize : "FMTL"KB --> %s\n",
             BYTE2KB(pMemInfo->lwMaxPermSize),
             pMemInfo->szMaxPermSize);
     }
 
     if (pMemInfo->szThreadStackSize != NULL)
     {
-        ana_file_print(pFile, "ThreadStackSize : "FMTL"KB --> %s\n",
+        os_fprintf(pFile, "ThreadStackSize : "FMTL"KB --> %s\n",
             BYTE2KB(pMemInfo->lwThreadStackSize),
             pMemInfo->szThreadStackSize);
     }
 
-    ana_file_print(pFile, "\n\n5.JVM Generation Space and GC Status Information: \n\n");
+    os_fprintf(pFile, "\n\n5.JVM Generation Space and GC Status Information: \n\n");
     s_out_line(pFile, NULL);
 
 ERROR:
     return;
 }
 
+/*!
+*@brief        对OOM的Java Heap Space异常进行诊断
+*@author       zhaohm3
+*@param[in]    pPdiTree
+*@retval
+*@note
+* 
+*@since    2014-9-24 17:51
+*@attention
+* 
+*/
 GPublic void ana_OOM_Java_heap_space(RBTreeP_t pPdiTree)
 {
     MemAnaInfo_t sMemInfo = { 0 };
@@ -214,15 +269,15 @@ GPublic void ana_OOM_Java_heap_space(RBTreeP_t pPdiTree)
     dfHeapSize = s_ngc() + s_ogc();
     dfMaxHeapSize = s_ngcmx() + s_ogcmx();
 
-    pAnaFile = ana_file_open(os_getpid());
+    pAnaFile = ana_fopen(os_getpid());
     GCMON_CHECK_NULL(pAnaFile, ERROR);
     mai_gather_info(pPdiTree, &sMemInfo);
     mai_print_verbose(pAnaFile, &sMemInfo);
 
-    ana_file_print(pAnaFile, "\n\n6.JVM OOM Message Information: \n\n");
-    ana_file_print(pAnaFile, "java.lang.OutOfMemoryError: Java heap space\n");
+    os_fprintf(pAnaFile, "\n\n6.JVM OOM Message Information: \n\n");
+    os_fprintf(pAnaFile, "java.lang.OutOfMemoryError: Java heap space\n");
 
-    ana_file_print(pAnaFile, "\n\n7.JVM OOM Cause Information: \n\n");
+    os_fprintf(pAnaFile, "\n\n7.JVM OOM Cause Information: \n\n");
 
     /*!
      * 1、当前已经申请的HeapSize已经大于MaxHeapSize的95%
@@ -237,15 +292,15 @@ GPublic void ana_OOM_Java_heap_space(RBTreeP_t pPdiTree)
              * 1、HeapSize已经用尽
              * 2、操作系统内存不足
              */
-            ana_file_print(pAnaFile,
+            os_fprintf(pAnaFile,
                 "Max heap size is "FMTF"KB,\nCurrent used heap size is "FMTF"KB,\nHeap resource is exhausted.\n",
                  dfMaxHeapSize, dfHeapUsed);
-            ana_file_print(pAnaFile,
+            os_fprintf(pAnaFile,
                 "\nPhysical memory size is "FMTL"KB,\nCurrent usable size is "FMTL"KB,\nPhysical memory resource is exhausted.\n",
                  BYTE2KB(sMemInfo.sPhys.lwTotalPhys),
                  BYTE2KB(sMemInfo.sPhys.lwAvailPhys));
-            ana_file_print(pAnaFile, "\n\n8.JVM OOM Analyze Suggestions: \n\n");
-            ana_file_print(pAnaFile, "Set a value bigger than "FMTL"KB to -Xmx or -XX:MaxHeapSize, and clear the application's cache.\n", (Size64_t)dfMaxHeapSize);
+            os_fprintf(pAnaFile, "\n\n8.JVM OOM Analyze Suggestions: \n\n");
+            os_fprintf(pAnaFile, "Set a value bigger than "FMTL"KB to -Xmx or -XX:MaxHeapSize, and clear the application's cache.\n", (Size64_t)dfMaxHeapSize);
         }
         else
         {
@@ -253,15 +308,15 @@ GPublic void ana_OOM_Java_heap_space(RBTreeP_t pPdiTree)
             * 1、HeapSize已经用尽
             * 2、操作系统内存还有剩余
             */
-            ana_file_print(pAnaFile,
+            os_fprintf(pAnaFile,
                 "Max heap size is "FMTF"KB,\nCurrent used heap size is "FMTF"KB,\nHeap resource is exhausted.\n",
                  dfMaxHeapSize, dfHeapUsed);
-            ana_file_print(pAnaFile,
+            os_fprintf(pAnaFile,
                 "\nPhysical memory size is "FMTL"KB,\nCurrent usable size is "FMTL"KB,\nPhysical memory resource is available.\n",
                  BYTE2KB(sMemInfo.sPhys.lwTotalPhys),
                  BYTE2KB(sMemInfo.sPhys.lwAvailPhys));
-            ana_file_print(pAnaFile, "\n\n8.JVM OOM Analyze Suggestions: \n\n");
-            ana_file_print(pAnaFile, "Set a value bigger than "FMTL"KB to -Xmx or -XX:MaxHeapSize.\n", (Size64_t)dfMaxHeapSize);
+            os_fprintf(pAnaFile, "\n\n8.JVM OOM Analyze Suggestions: \n\n");
+            os_fprintf(pAnaFile, "Set a value bigger than "FMTL"KB to -Xmx or -XX:MaxHeapSize.\n", (Size64_t)dfMaxHeapSize);
         }
     }
     else
@@ -273,15 +328,15 @@ GPublic void ana_OOM_Java_heap_space(RBTreeP_t pPdiTree)
             * 1、HeapSize还很充足
             * 2、操作系统内存不足
             */
-            ana_file_print(pAnaFile,
+            os_fprintf(pAnaFile,
                 "Max heap size is "FMTF"KB,\nCurrent used heap size is "FMTF"KB,\nHeap resource is available.\n",
                  dfMaxHeapSize, dfHeapUsed);
-            ana_file_print(pAnaFile,
+            os_fprintf(pAnaFile,
                 "\nPhysical memory size is "FMTL"KB,\nCurrent usable size is "FMTL"KB,\nPhysical memory resource is exhausted.\n",
                  BYTE2KB(sMemInfo.sPhys.lwTotalPhys),
                  BYTE2KB(sMemInfo.sPhys.lwAvailPhys));
-            ana_file_print(pAnaFile, "\n\n8.JVM OOM Analyze Suggestions: \n\n");
-            ana_file_print(pAnaFile, "Clear the application's cache.\n");
+            os_fprintf(pAnaFile, "\n\n8.JVM OOM Analyze Suggestions: \n\n");
+            os_fprintf(pAnaFile, "Clear the application's cache.\n");
         }
         else
         {
@@ -289,32 +344,44 @@ GPublic void ana_OOM_Java_heap_space(RBTreeP_t pPdiTree)
             * 1、HeapSize还很充足
             * 2、操作系统内存还有剩余
             */
-            ana_file_print(pAnaFile,
+            os_fprintf(pAnaFile,
                 "Max heap size is "FMTF"KB,\nCurrent used heap size is "FMTF"KB,\nHeap resource is available.\n",
                  dfMaxHeapSize, dfHeapUsed);
-            ana_file_print(pAnaFile,
+            os_fprintf(pAnaFile,
                 "\nPhysical memory size is "FMTL"KB,\nCurrent usable size is "FMTL"KB,\nPhysical memory resource is available.\n",
                  BYTE2KB(sMemInfo.sPhys.lwTotalPhys),
                  BYTE2KB(sMemInfo.sPhys.lwAvailPhys));
-            ana_file_print(pAnaFile, "\n\n8.JVM OOM Analyze Suggestions: \n\n");
-            ana_file_print(pAnaFile, "Reset each generation's capacity.\n");
+            os_fprintf(pAnaFile, "\n\n8.JVM OOM Analyze Suggestions: \n\n");
+            os_fprintf(pAnaFile, "Reset each generation's capacity.\n");
         }
     }
 
 ERROR:
     mai_release_info(&sMemInfo);
-    ana_file_flush(pAnaFile);
-    ana_file_close(pAnaFile);
+    os_fflush(pAnaFile);
+    os_fclose(pAnaFile);
     return;
 }
 
+/*!
+*@brief        诊断OOM异常
+*@author       zhaohm3
+*@param[in]    pPdiTree
+*@param[in]    sdwOOMType
+*@retval
+*@note
+* 
+*@since    2014-9-24 17:51
+*@attention
+* 
+*/
 GPublic void ana_OOM(RBTreeP_t pPdiTree, Int32_t sdwOOMType)
 {
     GCMON_CHECK_NULL(pPdiTree, ERROR);
 
     switch (sdwOOMType)
     {
-    case 0:
+    case GOOM_HEAP_SPACE:
         ana_OOM_Java_heap_space(pPdiTree);
         break;
     default:

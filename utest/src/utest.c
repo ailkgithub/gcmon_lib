@@ -22,7 +22,7 @@
 */
 GPrivate void uitem_print_single(UItemP_t pItem)
 {
-    printf("ÓÃÀýºÅ£º%d\t%s\n\n", pItem->sdwId, pItem->szDescribe);
+    os_printf("ÓÃÀýºÅ£º%d\t%s\n\n", pItem->sdwId, pItem->szDescribe);
 }
 
 /*!
@@ -42,7 +42,7 @@ GPrivate void uitem_print_array(UItem_t aItems[], Int32_t sdwLen)
     Int32_t i = 0;
     UItemP_t pCurrent = NULL;
 
-    printf("\n");
+    os_printf("\n");
 
     for (i = 0; i < sdwLen; i++)
     {
@@ -54,7 +54,7 @@ GPrivate void uitem_print_array(UItem_t aItems[], Int32_t sdwLen)
         }
     }
 
-    printf("\n");
+    os_printf("\n");
 }
 
 /*!
@@ -109,11 +109,11 @@ GPublic void utest_run(UItem_t aItems[], Int32_t sdwLen)
     {
         uitem_print_array(aItems, sdwLen);
 
-        printf("%s", "ÇëÊäÈëÓÃÀýºÅ: ");
+        os_printf("%s", "ÇëÊäÈëÓÃÀýºÅ: ");
 
-        if (0 == scanf("%d", &sdwId))
+        if (0 == os_scanf("%d", &sdwId))
         {
-            fflush(stdin);
+            os_fflush(stdin);
             continue;
         }
 

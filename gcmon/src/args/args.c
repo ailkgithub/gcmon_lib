@@ -9,6 +9,7 @@
 
 #include "args/args.h"
 #include "perf/perf.h"
+#include "gcmon/gcmon.h"
 
 /*!
 *@brief        从pdi树中搜索sun.rt.javaCommand项，得到JVM的运行命令
@@ -63,9 +64,24 @@ ERROR:
 }
 
 /*!
+*@brief        获取传递给动态库gcmon的参数
+*@author       zhaohm3
+*@retval
+*@note
+* 
+*@since    2014-9-24 14:54
+*@attention
+* 
+*/
+GPublic String_t args_get_agentargs()
+{
+    return gcmon_get_agent_opts();
+}
+
+/*!
 *@brief        从JVM运行时参数中获取指定参数最后一次出现的位置
 *@author       zhaohm3
-*@param[in]    szVmArgs     传递给JVM的运行时参数
+*@param[in]    szArgs       传递给JVM的运行时参数
 *@param[in]    szPrefix     需要获取的参数前缀，比如-Xms, -Xmx, -Xmn等等
 *@retval
 *@note         JVM中的参数可以重复设置，最终生效的是最后一个
@@ -74,26 +90,116 @@ ERROR:
 *@attention
 * 
 */
-GPrivate String_t vmargs_get_last(String_t szVmArgs, String_t szPrefix)
+GPrivate String_t args_get_last(String_t szArgs, String_t szPrefix)
 {
     String_t szCurr = NULL, szLast = NULL;
     Size32_t dwPrefixSize = 0;
 
-    GCMON_CHECK_NULL(szVmArgs, ERROR);
+    GCMON_CHECK_NULL(szArgs, ERROR);
     GCMON_CHECK_NULL(szPrefix, ERROR);
 
-    szCurr = strstr(szVmArgs, szPrefix);
-    dwPrefixSize = (Size32_t)strlen(szPrefix);
+    szCurr = os_strstr(szArgs, szPrefix);
+    dwPrefixSize = (Size32_t)os_strlen(szPrefix);
 
     while (szCurr != NULL)
     {
         szLast = szCurr;
         szCurr += dwPrefixSize;
-        szCurr = strstr(szCurr, szPrefix);
+        szCurr = os_strstr(szCurr, szPrefix);
     }
 
 ERROR:
     return szLast;
+}
+
+/*!
+*@brief        获取传递给动态库gcmon的选项值
+*@author       zhaohm3
+*@param[in]    szPrefix
+*@retval
+*@note
+* 
+*@since    2014-9-24 15:32
+*@attention
+* 
+*/
+GPrivate String_t agentargs_get_option(String_t szPrefix)
+{
+    String_t szArgs = args_get_agentargs();
+    String_t szStart = NULL, szItor = NULL;
+    String_t szOption = NULL;
+    Int_t dwSize = 0;
+
+    szStart = args_get_last(szArgs, szPrefix);
+    GCMON_CHECK_NULL(szStart, ERROR);
+    szItor = szStart = szStart + os_strlen(szPrefix);
+    while (szItor[0] != ',' && szItor[0] != '\0') szItor++;
+    GCMON_CHECK_COND(szItor > szStart, ERROR);
+    dwSize = szItor - szStart + 1;
+    GMALLOC(szOption, Char_t, dwSize);
+    GCMON_CHECK_NULL(szOption, ERROR);
+    os_strncpy(szOption, szStart, dwSize - 1);
+    szOption[dwSize - 1] = '\0';
+
+ERROR:
+    return szOption;
+}
+
+/*!
+*@brief        获取传递给动态库gcmon的outpath值
+*@author       zhaohm3
+*@retval
+*@note
+*
+*@since    2014-9-24 14:59
+*@attention
+*
+*/
+GPublic String_t agentargs_get_outpath()
+{
+    String_t szPath = NULL, szOutpath = NULL;
+    Int_t dwSize = 0;
+
+    szPath = agentargs_get_option("outpath=");
+    GCMON_CHECK_NULL(szPath, ERROR);
+    dwSize = os_strlen(szPath);
+
+    if (szPath[dwSize - 1] != '/' && szPath[dwSize - 1] != '\\')
+    {
+        GMALLOC(szOutpath, Char_t, dwSize + 2);
+        GASSERT(szOutpath != NULL);
+        os_sprintf(szOutpath, "%s/", szPath);
+        szOutpath[dwSize + 1] = '\0';
+        GFREE(szPath);
+    }
+    else
+    {
+        szOutpath = szPath;
+    }
+
+    //! 如果目录不存在，则创建之
+    if (szOutpath != NULL && os_access(szOutpath, 0) != 0)
+    {
+        os_mkdir(szOutpath);
+    }
+
+ERROR:
+    return szOutpath;
+}
+
+/*!
+*@brief        获取传递给动态库gcmon的outname的值
+*@author       zhaohm3
+*@retval
+*@note
+*
+*@since    2014-9-24 15:00
+*@attention
+*
+*/
+GPublic String_t agentargs_get_outname()
+{
+    return agentargs_get_option("outname=");
 }
 
 /*!
@@ -117,11 +223,11 @@ GPublic Size64_t vmargs_parse_size(String_t szVmArgs, String_t szPrefix, StringP
 
     GCMON_CHECK_NULL(szVmArgs, ERROR);
     GCMON_CHECK_NULL(szPrefix, ERROR);
-    szStart = szItor = vmargs_get_last(szVmArgs, szPrefix);
+    szStart = szItor = args_get_last(szVmArgs, szPrefix);
     GCMON_CHECK_NULL(szItor, ERROR);
-    szItor += strlen(szPrefix);
+    szItor += os_strlen(szPrefix);
 
-    sdwScanf = sscanf(szItor, FMTL, &lwSize);
+    sdwScanf = os_sscanf(szItor, FMTL, &lwSize);
     GCMON_CHECK_COND(1 == sdwScanf, ERROR);
 
     while (szItor[0] != '\0' && szItor[0] >= '0' && szItor[0] <= '9') {
@@ -158,7 +264,7 @@ GPublic Size64_t vmargs_parse_size(String_t szVmArgs, String_t szPrefix, StringP
         Int_t wSize = szItor - szStart + 2;
         GMALLOC(szArgs, Char_t, wSize);
         GCMON_CHECK_NULL(szArgs, ERROR);
-        strncpy(szArgs, szStart, wSize - 1);
+        os_strncpy(szArgs, szStart, wSize - 1);
         szArgs[wSize - 1] = '\0';
         *pszArgs = szArgs;
     }
@@ -191,8 +297,8 @@ GPrivate Size64_t vmargs_parse_final_size(String_t szVmArgs,
     String_t szPrefix = NULL, szArgs = NULL;
     Size64_t lwSize = 0;
 
-    szLast1 = vmargs_get_last(szVmArgs, szPrefix1);
-    szLast2 = vmargs_get_last(szVmArgs, szPrefix2);
+    szLast1 = args_get_last(szVmArgs, szPrefix1);
+    szLast2 = args_get_last(szVmArgs, szPrefix2);
     GCMON_CHECK_COND(szLast1 != NULL || szLast2 != NULL, ERROR);
 
     szPrefix = (szLast2 - szLast1 > 0) ? szPrefix2 : szPrefix1;
@@ -201,7 +307,6 @@ GPrivate Size64_t vmargs_parse_final_size(String_t szVmArgs,
 ERROR:
     return lwSize;
 }
-
 
 GPublic Size64_t vmargs_parse_InitialHeapSize(String_t szVmArgs, StringP_t pszArgs)
 {

@@ -17,13 +17,15 @@
 #include <stdarg.h>
 
 #include "hotspot/jvmti.h"
-#include "os/type.h"
 
 //! 标记私有接口，不对外提供
 #define GPrivate static
 
 //! 标记公有接口，对外提供
 #define GPublic extern
+
+#include "os/type.h"
+#include "os/os.h"
 
 //! 打开gFile
 GPublic void gcmon_debug_fopen();
@@ -45,7 +47,7 @@ do                                                          \
     if (e != JVMTI_ERROR_NONE)                              \
     {                                                       \
         gcmon_debug_msg("JVMTI Error No. = %d : %s in %s --> %s : %d \n", e, msg, __FUNCTION__, __FILE__, __LINE__); \
-        printf("JVMTI Error No. = %d : %s \n", e, msg); \
+        os_printf("JVMTI Error No. = %d : %s \n", e, msg); \
         goto where;                                         \
     }                                                       \
 } while (0)
@@ -93,7 +95,7 @@ do                                                          \
 } while (0)
 
 #ifdef DEBUG
-    #define GCMON_PRINT_FUNC() printf("%s\n", __FUNCTION__)
+    #define GCMON_PRINT_FUNC() os_printf("%s\n", __FUNCTION__)
 #else
     #define GCMON_PRINT_FUNC()
 #endif

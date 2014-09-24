@@ -162,7 +162,7 @@ GPrivate BasicType_t name2type(String_t szName)
     {
         BasicType_t t = (BasicType_t)i;
 
-        if (gTtype2name[i] != NULL && 0 == strcmp(gTtype2name[i], szName))
+        if (gTtype2name[i] != NULL && 0 == os_strcmp(gTtype2name[i], szName))
         {
             return t;
         }
@@ -293,7 +293,7 @@ GPrivate String_t pde_get_string(PerfDataEntryP_t pEntry)
 GPrivate PerfDataItemP_t pdi_clear(PerfDataItemP_t pItem)
 {
     GCMON_CHECK_NULL(pItem, ERROR);
-    memset(pItem, 0, PDI_SIZE);
+    os_memset(pItem, 0, PDI_SIZE);
 
 ERROR:
     return pItem;
@@ -418,7 +418,7 @@ GPrivate Int32_t pdi_compare(PerfDataItemP_t pSrc, PerfDataItemP_t pDes)
 
     if (szSrcName != NULL && szDesName != NULL)
     {
-        sdwCompare = (Int32_t)strcmp(szSrcName, szDesName);
+        sdwCompare = (Int32_t)os_strcmp(szSrcName, szDesName);
     }
     else if (szSrcName != NULL)
     {

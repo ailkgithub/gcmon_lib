@@ -9,11 +9,51 @@
 
 #include "os/os.h"
 
+/*!
+*@brief        关闭文件
+*@author       zhaohm3
+*@param[in]    pFile
+*@retval
+*@note
+*
+*@since    2014-9-24 11:16
+*@attention
+*
+*/
+GPublic void os_fclose(FILE *file)
+{
+    if (file != NULL)
+    {
+        fclose(file);
+    }
+}
+
+/*!
+*@brief        刷新文件内容
+*@author       zhaohm3
+*@param[in]    pFile
+*@retval
+*@note
+*
+*@since    2014-9-24 11:16
+*@attention
+*
+*/
+GPublic void os_fflush(FILE *file)
+{
+    if (file != NULL)
+    {
+        fflush(file);
+    }
+}
+
 #ifdef WIN32
 
 #include <windows.h>
 #include <psapi.h>
 #include <process.h>
+#include <io.h>
+#include <direct.h>
 
 /*!
 *@brief        获取物理主机的内存信息
@@ -85,14 +125,135 @@ GPublic Int_t os_getpid()
     return (Int_t)_getpid();
 }
 
+/*!
+*@brief        打开文件
+*@author       zhaohm3
+*@param[in]    filename
+*@param[in]    mode
+*@retval
+*@note
+* 
+*@since    2014-9-24 11:07
+*@attention
+* 
+*/
+GPublic FILE *os_fopen(String_t filename, String_t mode)
+{
+    FILE *file = NULL;
+    errno_t e = fopen_s(&file, filename, mode);
+
+    return file;
+}
+
+/*!
+*@brief        打开文件
+*@author       zhaohm3
+*@param[in]    path
+*@param[in]    oflag
+*@param[in]    pmode
+*@retval
+*@note
+* 
+*@since    2014-9-24 17:14
+*@attention
+* 
+*/
+GPublic Int_t os_open(String_t path, Int_t oflag, Int_t pmode)
+{
+    return _open(path, oflag, pmode);
+}
+
+/*!
+*@brief        关闭文件
+*@author       zhaohm3
+*@param[in]    fd
+*@retval
+*@note
+* 
+*@since    2014-9-24 17:14
+*@attention
+* 
+*/
+GPublic Int_t os_close(Int_t fd)
+{
+    return _close(fd);
+}
+
+/*!
+*@brief        读取文件
+*@author       zhaohm3
+*@param[in]    fd
+*@param[in]    buffer
+*@param[in]    count
+*@retval
+*@note
+* 
+*@since    2014-9-24 17:15
+*@attention
+* 
+*/
+GPublic Int_t os_read(Int_t fd, Addr_t buffer, Count_t count)
+{
+    return _read(fd, buffer, count);
+}
+
+
+/*!
+*@brief        判断文件的访问属性
+*@author       zhaohm3
+*@param[in]    path
+*@param[in]    mode
+*@retval
+*@note
+* 
+*@since    2014-9-24 17:15
+*@attention
+* 
+*/
+GPublic Int_t os_access(String_t path, Int_t mode)
+{
+    return _access(path, mode);
+}
+
+/*!
+*@brief        删除文件或者目录
+*@author       zhaohm3
+*@param[in]    filename
+*@retval
+*@note
+* 
+*@since    2014-9-24 17:17
+*@attention
+* 
+*/
+GPublic Int_t os_unlink(String_t filename)
+{
+    return _unlink(filename);
+}
+
+/*!
+*@brief        创建目录
+*@author       zhaohm3
+*@param[in]    path
+*@retval
+*@note
+* 
+*@since    2014-9-24 17:15
+*@attention
+* 
+*/
+GPublic Int_t os_mkdir(String_t path)
+{
+    return _mkdir(path);
+}
+
 #elif defined(LINUX) || defined(SOLARIS)
 
+#include <unistd.h>
+#include <fcntl.h>
 #include <sys/sysinfo.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <string.h>
 
 /*!
 *@brief        获取物理主机的内存信息
@@ -140,24 +301,24 @@ GPublic Bool32_t os_get_process_memory_info(ProccessMemoryInfoP_t pMemoryInfo)
     String_t szItor = NULL;
     Size64_t lwPhysicalSize = 0, lwVirtualSize = 0;
 
-    sprintf(szFileName, "/proc/%d/status", getpid());
+    os_sprintf(szFileName, "/proc/%d/status", os_getpid());
 
-    sdwFileID = open(szFileName, 0, 0);
+    sdwFileID = os_open(szFileName, 0, 0);
     GCMON_CHECK_COND(sdwFileID != -1, OSERROR);
-    sdwReaded = read(sdwFileID, szMemoryInfo, sizeof(szMemoryInfo));
+    sdwReaded = os_read(sdwFileID, szMemoryInfo, sizeof(szMemoryInfo));
     GCMON_CHECK_COND(sdwReaded > 0 && sdwReaded < 1024, OSERROR);
     szMemoryInfo[sdwReaded - 1] = '\0';
 
-    szItor = strstr(szMemoryInfo, "VmRSS:\t");
+    szItor = os_strstr(szMemoryInfo, "VmRSS:\t");
     GCMON_CHECK_NULL(szItor, OSERROR);
-    szItor = szItor + strlen("VmRSS:\t");
-    sdwScanf = sscanf(szItor, FMTL, &lwPhysicalSize);
+    szItor = szItor + os_strlen("VmRSS:\t");
+    sdwScanf = os_sscanf(szItor, FMTL, &lwPhysicalSize);
     GCMON_CHECK_COND(1 == sdwScanf, OSERROR);
 
-    szItor = strstr(szMemoryInfo, "VmSize:\t");
+    szItor = os_strstr(szMemoryInfo, "VmSize:\t");
     GCMON_CHECK_NULL(szItor, OSERROR);
-    szItor = szItor + strlen("VmSize:\t");
-    sdwScanf = sscanf(szItor, FMTL, &lwVirtualSize);
+    szItor = szItor + os_strlen("VmSize:\t");
+    sdwScanf = os_sscanf(szItor, FMTL, &lwVirtualSize);
     GCMON_CHECK_COND(1 == sdwScanf, OSERROR);
 
     if (pMemoryInfo != NULL)
@@ -171,7 +332,7 @@ GPublic Bool32_t os_get_process_memory_info(ProccessMemoryInfoP_t pMemoryInfo)
 OSERROR:
     if (sdwFileID != -1)
     {
-        close(sdwFileID);
+        os_close(sdwFileID);
     }
 
     return bSuccess;
@@ -190,6 +351,125 @@ OSERROR:
 GPublic Int_t os_getpid()
 {
     return (Int_t)getpid();
+}
+
+/*!
+*@brief        打开文件
+*@author       zhaohm3
+*@param[in]    filename
+*@param[in]    mode
+*@retval
+*@note
+*
+*@since    2014-9-24 11:07
+*@attention
+*
+*/
+GPublic FILE *os_fopen(String_t filename, String_t mode)
+{
+    return fopen(filename, mode);
+}
+
+/*!
+*@brief        打开文件
+*@author       zhaohm3
+*@param[in]    path
+*@param[in]    oflag
+*@param[in]    pmode
+*@retval
+*@note
+*
+*@since    2014-9-24 17:14
+*@attention
+*
+*/
+GPublic Int_t os_open(String_t path, Int_t oflag, Int_t pmode)
+{
+    return open(path, oflag, pmode);
+}
+
+/*!
+*@brief        关闭文件
+*@author       zhaohm3
+*@param[in]    fd
+*@retval
+*@note
+*
+*@since    2014-9-24 17:14
+*@attention
+*
+*/
+GPublic Int_t os_close(Int_t fd)
+{
+    return close(fd);
+}
+
+/*!
+*@brief        读取文件
+*@author       zhaohm3
+*@param[in]    fd
+*@param[in]    buffer
+*@param[in]    count
+*@retval
+*@note
+*
+*@since    2014-9-24 17:15
+*@attention
+*
+*/
+GPublic Int_t os_read(Int_t fd, Addr_t buffer, Count_t count)
+{
+    return read(fd, buffer, count);
+}
+
+
+/*!
+*@brief        判断文件的访问属性
+*@author       zhaohm3
+*@param[in]    path
+*@param[in]    mode
+*@retval
+*@note
+*
+*@since    2014-9-24 17:15
+*@attention
+*
+*/
+GPublic Int_t os_access(String_t path, Int_t mode)
+{
+    return access(path, mode);
+}
+
+/*!
+*@brief        删除文件或者目录
+*@author       zhaohm3
+*@param[in]    filename
+*@retval
+*@note
+*
+*@since    2014-9-24 17:17
+*@attention
+*
+*/
+GPublic Int_t os_unlink(String_t filename)
+{
+    return unlink(filename);
+}
+
+/*!
+*@brief        创建目录
+*@author       zhaohm3
+*@param[in]    path
+*@retval
+*@note
+*
+*@since    2014-9-24 17:15
+*@attention
+*
+*/
+GPublic Int_t os_mkdir(String_t path)
+{
+    return mkdir(path, S_IRWXU);
 }
 
 #else

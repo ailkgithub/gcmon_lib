@@ -416,7 +416,7 @@ GPublic void s_out_row(FILE *pFile, String_t szContext)
 
     if (szContext != NULL)
     {
-        fprintf(pFile, szContext);
+        os_fprintf(pFile, szContext);
     }
 
     for (i = 0; i < sdwLen; i++)
@@ -424,20 +424,20 @@ GPublic void s_out_row(FILE *pFile, String_t szContext)
         switch (gaSout[i].sdwType)
         {
         case S_FD:
-            fprintf(pFile, "%s: "FMTF"\t", gaSout[i].szHeader, gaSout[i].pfnDouble());
+            os_fprintf(pFile, "%s: "FMTF"\t", gaSout[i].szHeader, gaSout[i].pfnDouble());
             break;
         case S_FL:
-            fprintf(pFile, "%s: "FMTL"\t", gaSout[i].szHeader, gaSout[i].pfnJlong());
+            os_fprintf(pFile, "%s: "FMTL"\t", gaSout[i].szHeader, gaSout[i].pfnJlong());
             break;
         case S_FS:
-            fprintf(pFile, " | \t");
+            os_fprintf(pFile, " | \t");
             break;
         default:
             break;
         }
     }
 
-    fprintf(pFile, "\n");
+    os_fprintf(pFile, "\n");
 }
 
 
@@ -465,7 +465,7 @@ GPublic void s_out_line(FILE *pFile, String_t szContext)
 
     if (szContext != NULL)
     {
-        fprintf(pFile, "%s\n", szContext);
+        os_fprintf(pFile, "%s\n", szContext);
     }
 
     for (i = 0; i < sdwLen; i++)
@@ -473,13 +473,13 @@ GPublic void s_out_line(FILE *pFile, String_t szContext)
         switch (gaSout[i].sdwType)
         {
         case S_FD:
-            fprintf(pFile, "%s: "FMTF"\n", gaSout[i].szHeader, gaSout[i].pfnDouble());
+            os_fprintf(pFile, "%s: "FMTF"\n", gaSout[i].szHeader, gaSout[i].pfnDouble());
             break;
         case S_FL:
-            fprintf(pFile, "%s: "FMTL"\n", gaSout[i].szHeader, gaSout[i].pfnJlong());
+            os_fprintf(pFile, "%s: "FMTL"\n", gaSout[i].szHeader, gaSout[i].pfnJlong());
             break;
         case S_FS:
-            fprintf(pFile, "\n---> %s <---\n", gaSout[i].szHeader);
+            os_fprintf(pFile, "\n---> %s <---\n", gaSout[i].szHeader);
             break;
         default:
             break;

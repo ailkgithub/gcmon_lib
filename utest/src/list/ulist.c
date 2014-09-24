@@ -177,14 +177,14 @@ GPrivate void utest_strcmp()
 {
     Int32_t sdwCompare = 0;
 
-    sdwCompare = (Int32_t)strcmp(NULL, NULL);
-    sdwCompare = (Int32_t)strcmp(NULL, "");
-    sdwCompare = (Int32_t)strcmp("", NULL);
-    sdwCompare = (Int32_t)strcmp("", "");
-    sdwCompare = (Int32_t)strcmp("", "  ");
-    sdwCompare = (Int32_t)strcmp(" ", "  ");
-    sdwCompare = (Int32_t)strcmp("  ", "");
-    sdwCompare = (Int32_t)strcmp("  ", " ");
+    sdwCompare = (Int32_t)os_strcmp(NULL, NULL);
+    sdwCompare = (Int32_t)os_strcmp(NULL, "");
+    sdwCompare = (Int32_t)os_strcmp("", NULL);
+    sdwCompare = (Int32_t)os_strcmp("", "");
+    sdwCompare = (Int32_t)os_strcmp("", "  ");
+    sdwCompare = (Int32_t)os_strcmp(" ", "  ");
+    sdwCompare = (Int32_t)os_strcmp("  ", "");
+    sdwCompare = (Int32_t)os_strcmp("  ", " ");
 }
 
 GPublic void utest_list_run()
