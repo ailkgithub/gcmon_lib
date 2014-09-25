@@ -1,6 +1,7 @@
 #include "list/list.h"
 #include "share/share.h"
 #include "utest.h"
+#include "os/os.h"
 
 GPrivate Int32_t uld_compare(LDataP_t pSrc, LDataP_t  pDes)
 {
@@ -91,8 +92,6 @@ GPublic void utest_list()
     Int32_t i = 0;
     Int32_t sdwCount = 1024;
 
-    gcmon_debug_fopen();
-
     pList = ul_new();
     GASSERT(pList != NULL);
 
@@ -170,7 +169,6 @@ GPublic void utest_list()
     }
 
     list_free(pList);
-    gcmon_debug_fclose();
 }
 
 GPrivate void utest_strcmp()

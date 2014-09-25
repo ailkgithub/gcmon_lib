@@ -14,6 +14,10 @@
 
 GPublic void file_open_all();
 GPublic void file_close_all();
+
+GPublic void file_open_fdebug();
+GPublic void file_close_fdebug();
+
 GPublic FILE* file_get_fdebug();
 GPublic FILE* file_get_fresult();
 GPublic FILE* file_get_fstat();

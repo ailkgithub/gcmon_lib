@@ -54,7 +54,7 @@ GPrivate FILE* file_open_fpostfix(String_t szPostfix)
 *@attention
 * 
 */
-GPrivate void file_open_fdebug()
+GPublic void file_open_fdebug()
 {
 #ifdef DEBUG
     gpDebugFile = file_open_fpostfix("debug");
@@ -121,6 +121,54 @@ GPublic void file_open_all()
 }
 
 /*!
+*@brief        关闭存放调试信息的文件
+*@author       zhaohm3
+*@retval
+*@note
+* 
+*@since    2014-9-25 16:30
+*@attention
+* 
+*/
+GPublic void file_close_fdebug()
+{
+    os_fflush(gpDebugFile);
+    os_fclose(gpDebugFile);
+}
+
+/*!
+*@brief        关闭存放诊断结果的文件
+*@author       zhaohm3
+*@retval
+*@note
+* 
+*@since    2014-9-25 16:33
+*@attention
+* 
+*/
+GPrivate void file_close_fresult()
+{
+    os_fflush(gpResultFile);
+    os_fclose(gpResultFile);
+}
+
+/*!
+*@brief        关闭存放运行时状态的文件
+*@author       zhaohm3
+*@retval
+*@note
+* 
+*@since    2014-9-25 16:33
+*@attention
+* 
+*/
+GPrivate void file_close_fstat()
+{
+    os_fflush(gpStatFile);
+    os_close(gpStatFile);
+}
+
+/*!
 *@brief        外部接口，关闭所有文件
 *@author       zhaohm3
 *@retval
@@ -132,13 +180,9 @@ GPublic void file_open_all()
 */
 GPublic void file_close_all()
 {
-    os_fflush(gpDebugFile);
-    os_fflush(gpResultFile);
-    os_fflush(gpStatFile);
-
-    os_fclose(gpDebugFile);
-    os_fclose(gpResultFile);
-    os_fclose(gpStatFile);
+    file_close_fdebug();
+    file_close_fresult();
+    file_close_fstat();
 }
 
 /*!

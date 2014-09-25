@@ -1,5 +1,6 @@
 
 #include "utest.h"
+#include "file/file.h"
 
 static void urun()
 {
@@ -11,8 +12,9 @@ static void urun()
         { 1, TRUE, utest_rbtree_run, NULL, "进入红黑树测试单元" },
         { 2, TRUE, utest_list_run, NULL, "进入链表测试单元" },
     };
-
+    file_open_fdebug();
     utest_run(aItems, ARRAY_SIZE(aItems));
+    file_close_fdebug();
 }
 
 int main(int argc, char **argv, char **env)

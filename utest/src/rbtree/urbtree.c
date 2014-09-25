@@ -61,9 +61,7 @@ GPublic void utest_rbtree()
 {
     RBTreeP_t pTree = NULL;
     Int32_t i = 0;
-    Int32_t sdwCount = 1024000;
-
-    gcmon_debug_fopen();
+    Int32_t sdwCount = 10240;
 
     pTree = urbt_new();
 
@@ -89,7 +87,6 @@ GPublic void utest_rbtree()
     }
 
     rbtree_free(pTree);
-    gcmon_debug_fclose();
 }
 
 GPublic void utest_rbtree_run()
