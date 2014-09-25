@@ -64,6 +64,13 @@ GPrivate void gcmon_get_perf_address(jvmtiEnv *jvmti_env, JNIEnv* jni_env)
         jobject buf = gfnPerf_Attach(jni_env, NULL, NULL, 0, 0);
 
         gPerfMemory = (Addr_t)(*jni_env)->GetDirectBufferAddress(jni_env, buf);
+
+        //! 如果gPerfMemory为空，表示JVM设置了-XX:-UsePerfData选项
+        if (NULL == gPerfMemory)
+        {
+            os_memset(&gCallbacks, 0, sizeof(jvmtiEventCallbacks));
+            gJvmtiEnv->SetEventCallbacks(gpJvmtiEnv, &gCallbacks, sizeof(jvmtiEventCallbacks));
+        }
     }
 }
 

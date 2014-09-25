@@ -165,7 +165,7 @@ GPrivate void file_close_fresult()
 GPrivate void file_close_fstat()
 {
     os_fflush(gpStatFile);
-    os_close(gpStatFile);
+    os_fclose(gpStatFile);
 }
 
 /*!
