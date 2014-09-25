@@ -8,9 +8,11 @@
  ****************************************************************/
 
 #include "ana/ana.h"
+#include "os/os.h"
+#include "gcmon/gcmon.h"
 #include "args/args.h"
 #include "sample/sample.h"
-#include "gcmon/gcmon.h"
+#include "file/file.h"
 
 //! JVM运行时的内存信息
 typedef struct MemAnaInfo MemAnaInfo_t, *MemAnaInfoP_t;
@@ -49,34 +51,6 @@ GPrivate Size64_t glwOSOverheadMemorySize = 100 * MB;
 GPrivate Double_t gdfJVMHeapFreeRatio = 0.95;
 
 /*!
-*@brief        根据AgentOptions参数，打开存放Analyze结果的文件
-*@author       zhaohm3
-*@param[in]    pid
-*@retval
-*@note
-* 
-*@since    2014-9-24 17:46
-*@attention
-* 
-*/
-GPrivate FILE *ana_fopen(Int_t pid)
-{
-    Char_t szFileName[256] = { 0 };
-    String_t szOutpath = agentargs_get_outpath();
-    String_t szOutname = agentargs_get_outname();
-
-    os_sprintf(szFileName, "%s%s_pid_%d",
-        (szOutpath != NULL) ? szOutpath : "",
-        (szOutname != NULL) ? szOutname : "gcmon",
-        pid);
-
-    GFREE(szOutpath);
-    GFREE(szOutname);
-
-    return os_fopen(szFileName, "w+");
-}
-
-/*!
 *@brief        收集JVM的内存以及运行时参数信息
 *@author       zhaohm3
 *@param[in]    pPdiTree
@@ -95,7 +69,7 @@ GPrivate void mai_gather_info(RBTreeP_t pPdiTree, MemAnaInfoP_t pMemInfo)
     os_get_process_memory_info(&pMemInfo->sProc);
     pMemInfo->szJavaCmd = args_get_javacmd(pPdiTree);
     pMemInfo->szVMArgs = args_get_vmargs(pPdiTree);
-    pMemInfo->szAgentOpts = args_get_agentargs();
+    pMemInfo->szAgentOpts = args_get_agentopts();
     pMemInfo->lwInitialHeapSize = vmargs_parse_InitialHeapSize(pMemInfo->szVMArgs, &pMemInfo->szInitialHeapSize);
     pMemInfo->lwMaxHeapSize = vmargs_parse_MaxHeapSize(pMemInfo->szVMArgs, &pMemInfo->szMaxHeapSize);
     pMemInfo->lwNewSize = vmargs_parse_NewSize(pMemInfo->szVMArgs, &pMemInfo->szNewSize);
@@ -104,7 +78,6 @@ GPrivate void mai_gather_info(RBTreeP_t pPdiTree, MemAnaInfoP_t pMemInfo)
     pMemInfo->lwPermSize = vmargs_parse_PermSize(pMemInfo->szVMArgs, &pMemInfo->szPermSize);
     pMemInfo->lwMaxPermSize = vmargs_parse_MaxPermSize(pMemInfo->szVMArgs, &pMemInfo->szMaxPermSize);
     pMemInfo->lwThreadStackSize = vmargs_parse_ThreadStackSize(pMemInfo->szVMArgs, &pMemInfo->szThreadStackSize);
-
 
 ERROR:
     return;
@@ -269,7 +242,7 @@ GPublic void ana_OOM_Java_heap_space(RBTreeP_t pPdiTree)
     dfHeapSize = s_ngc() + s_ogc();
     dfMaxHeapSize = s_ngcmx() + s_ogcmx();
 
-    pAnaFile = ana_fopen(os_getpid());
+    pAnaFile = file_get_fresult();
     GCMON_CHECK_NULL(pAnaFile, ERROR);
     mai_gather_info(pPdiTree, &sMemInfo);
     mai_print_verbose(pAnaFile, &sMemInfo);
@@ -358,8 +331,6 @@ GPublic void ana_OOM_Java_heap_space(RBTreeP_t pPdiTree)
 
 ERROR:
     mai_release_info(&sMemInfo);
-    os_fflush(pAnaFile);
-    os_fclose(pAnaFile);
     return;
 }
 

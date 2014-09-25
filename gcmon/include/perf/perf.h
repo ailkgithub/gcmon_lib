@@ -10,7 +10,6 @@
 #ifndef _perf_h__
 #define _perf_h__
 
-#include "share/share.h"
 #include "rbtree/rbtree.h"
 
 typedef struct PerfDataItem PerfDataItem_t, *PerfDataItemP_t;

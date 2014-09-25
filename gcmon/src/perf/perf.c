@@ -8,13 +8,7 @@
  ****************************************************************/
 
 #include "perf/perf.h"
-
-typedef struct PerfDataPrologue PerfDataPrologue_t, *PerfDataPrologueP_t;
-typedef struct PerfDataEntry PerfDataEntry_t, *PerfDataEntryP_t;
-typedef enum BasicType BasicType_t, *BasicTypeP_t;
-typedef enum Variability Variability_t, *VariabilityP_t;
-typedef enum Units Units_t, *UnitsP_t;
-typedef enum Flags Flags_t, *FlagsP_t;
+#include "os/os.h"
 
 //! 检测Hotspot的PerfDataEntry的内容变化
 #define PERFDATA_MAJOR_VERSION 2
@@ -25,6 +19,7 @@ typedef enum Flags Flags_t, *FlagsP_t;
 #define PERFDATA_LITTLE_ENDIAN  1
 
 //! Hotspot原生PerfDataPrologue结构定义
+typedef struct PerfDataPrologue PerfDataPrologue_t, *PerfDataPrologueP_t;
 struct PerfDataPrologue{
     jint   magic;                       //!< magic number - 0xcafec0c0
     jbyte  byte_order;                  //!< byte order of the buffer
@@ -39,6 +34,7 @@ struct PerfDataPrologue{
 };
 
 //! Hotspot原生PerfDataEntry结构定义
+typedef struct PerfDataEntry PerfDataEntry_t, *PerfDataEntryP_t;
 struct PerfDataEntry {
     jint entry_length;                  //!< entry length in bytes
     jint name_offset;                   //!< offset of the data item name
@@ -71,6 +67,7 @@ struct PerfDataItem
 #define PDI_SIZE sizeof(PerfDataItem_t)
 
 //! 与vm/agent/sun/jvm/hotspot/runtime/BasicType.java中的定义保持同步
+typedef enum BasicType BasicType_t, *BasicTypeP_t;
 enum BasicType {
     T_BOOLEAN = 4,
     T_CHAR = 5,
@@ -93,6 +90,7 @@ enum BasicType {
  * 与Java类com.sun.hotspot.perfdata.Variability保持同步
  * 用于给PerfDataEntry.data_variability赋值
  */
+typedef enum Variability Variability_t, *VariabilityP_t;
 enum Variability {
     V_Constant = 1,
     V_Monotonic = 2,
@@ -104,6 +102,7 @@ enum Variability {
  * 与Java类com.sun.hotspot.perfdata.Units保持同步
  * 用于给PerfDataEntry.data_units赋值
  */
+typedef enum Units Units_t, *UnitsP_t;
 enum Units {
     U_None = 1,
     U_Bytes = 2,
@@ -115,6 +114,7 @@ enum Units {
 };
 
 //! Miscellaneous flags，用于给PerfDataEntry.flags赋值
+typedef enum Flags Flags_t, *FlagsP_t;
 enum Flags {
     F_None = 0x0,
     F_Supported = 0x1

@@ -1,15 +1,29 @@
 /*!**************************************************************
- *@file args.c
- *@brief    与参数解析相关的接口实现
- *@author   zhaohm3
- *@date 2014-9-22 9:55
- *@note
- * 
- ****************************************************************/
+*@file args.c
+*@brief    与参数解析相关的接口实现
+*@author   zhaohm3
+*@date 2014-9-22 9:55
+*@note
+*
+****************************************************************/
 
 #include "args/args.h"
+#include "os/os.h"
 #include "perf/perf.h"
-#include "gcmon/gcmon.h"
+
+//! 传递给gcmon的选项信息
+typedef struct AgentArgs AgentArgs_t, *AgentArgsP_t;
+struct AgentArgs
+{
+    String_t szOptions;             //!< 传递给gcmon的所有Options参数
+    String_t szOutpath;             //!< outpath=""，指定gcmon输出文件的存放路径，默认为当前目录
+    String_t szOutname;             //!< outname=""，指定分析结果文件的文件名称，默认为：gcmon_pid_$pid.result
+    String_t szOutstat;             //!< outstat="stdout" | "file"，是否打印和jstat工具类似的数据，默认不打印
+                                    //!< stdout表示打印到标准输出，file表示打印到文件
+};
+
+//! 传递给gcmon的选项值
+GPrivate AgentArgs_t gAgentArgs = { 0 };
 
 /*!
 *@brief        从pdi树中搜索sun.rt.javaCommand项，得到JVM的运行命令
@@ -17,10 +31,10 @@
 *@param[in]    pPdiTree
 *@retval
 *@note
-* 
+*
 *@since    2014-9-23 10:43
 *@attention
-* 
+*
 */
 GPublic String_t args_get_javacmd(RBTreeP_t pPdiTree)
 {
@@ -43,10 +57,10 @@ ERROR:
 *@param[in]    pPdiTree
 *@retval
 *@note
-* 
+*
 *@since    2014-9-22 10:34
 *@attention
-* 
+*
 */
 GPublic String_t args_get_vmargs(RBTreeP_t pPdiTree)
 {
@@ -64,31 +78,16 @@ ERROR:
 }
 
 /*!
-*@brief        获取传递给动态库gcmon的参数
-*@author       zhaohm3
-*@retval
-*@note
-* 
-*@since    2014-9-24 14:54
-*@attention
-* 
-*/
-GPublic String_t args_get_agentargs()
-{
-    return gcmon_get_agent_opts();
-}
-
-/*!
 *@brief        从JVM运行时参数中获取指定参数最后一次出现的位置
 *@author       zhaohm3
 *@param[in]    szArgs       传递给JVM的运行时参数
 *@param[in]    szPrefix     需要获取的参数前缀，比如-Xms, -Xmx, -Xmn等等
 *@retval
 *@note         JVM中的参数可以重复设置，最终生效的是最后一个
-* 
+*
 *@since    2014-9-22 10:47
 *@attention
-* 
+*
 */
 GPrivate String_t args_get_last(String_t szArgs, String_t szPrefix)
 {
@@ -116,16 +115,17 @@ ERROR:
 *@brief        获取传递给动态库gcmon的选项值
 *@author       zhaohm3
 *@param[in]    szPrefix
+*@param[in]    pdwSize
 *@retval
 *@note
-* 
+*
 *@since    2014-9-24 15:32
 *@attention
-* 
+*
 */
-GPrivate String_t agentargs_get_option(String_t szPrefix)
+GPrivate String_t agentargs_get_option(String_t szPrefix, IntP_t pdwSize)
 {
-    String_t szArgs = args_get_agentargs();
+    String_t szArgs = args_get_agentopts();
     String_t szStart = NULL, szItor = NULL;
     String_t szOption = NULL;
     Int_t dwSize = 0;
@@ -141,8 +141,100 @@ GPrivate String_t agentargs_get_option(String_t szPrefix)
     os_strncpy(szOption, szStart, dwSize - 1);
     szOption[dwSize - 1] = '\0';
 
+    if (pdwSize != NULL)
+    {
+        *pdwSize = dwSize - 1;
+    }
+
 ERROR:
     return szOption;
+}
+
+/*!
+*@brief        初始化gAgentArgs.szOutpath
+*@author       zhaohm3
+*@retval
+*@note
+* 
+*@since    2014-9-25 11:51
+*@attention
+* 
+*/
+GPrivate void agentargs_init_outpath()
+{
+    String_t szPath = NULL;
+    Int_t dwSize = 0;
+    Int_t ret = 0;
+
+    szPath = agentargs_get_option("outpath=", &dwSize);
+    GCMON_CHECK_NULL(szPath, ERROR);
+
+    if ('/' == szPath[dwSize - 1] || '\\' == szPath[dwSize - 1])
+    {
+        szPath[dwSize - 1] = '\0';
+        dwSize--;
+    }
+
+    //! 如果目录不存在，则创建之
+    if (dwSize > 0 && os_access(szPath, 0) != 0)
+    {
+        ret = os_mkdir(szPath);
+    }
+
+ERROR:
+    gAgentArgs.szOutpath = szPath;
+    return;
+}
+
+/*!
+*@brief        初始化gAgentArgs
+*@author       zhaohm3
+*@param[in]    szOptions
+*@retval
+*@note
+* 
+*@since    2014-9-25 12:36
+*@attention
+* 
+*/
+GPublic void args_init_agentargs(String_t szOptions)
+{
+    gAgentArgs.szOptions = szOptions;
+    agentargs_init_outpath();
+    gAgentArgs.szOutname = agentargs_get_option("outname=", NULL);
+    gAgentArgs.szOutstat = agentargs_get_option("outstat=", NULL);
+}
+
+/*!
+*@brief        释放gAgentArgs所占用的堆空间
+*@author       zhaohm3
+*@retval
+*@note
+* 
+*@since    2014-9-25 12:36
+*@attention
+* 
+*/
+GPublic void args_free_agentargs()
+{
+    GFREE(gAgentArgs.szOutpath);
+    GFREE(gAgentArgs.szOutname);
+    GFREE(gAgentArgs.szOutstat);
+}
+
+/*!
+*@brief        获取传递给动态库gcmon的参数
+*@author       zhaohm3
+*@retval
+*@note
+*
+*@since    2014-9-24 14:54
+*@attention
+*
+*/
+GPublic String_t args_get_agentopts()
+{
+    return gAgentArgs.szOptions;
 }
 
 /*!
@@ -157,34 +249,7 @@ ERROR:
 */
 GPublic String_t agentargs_get_outpath()
 {
-    String_t szPath = NULL, szOutpath = NULL;
-    Int_t dwSize = 0;
-
-    szPath = agentargs_get_option("outpath=");
-    GCMON_CHECK_NULL(szPath, ERROR);
-    dwSize = os_strlen(szPath);
-
-    if (szPath[dwSize - 1] != '/' && szPath[dwSize - 1] != '\\')
-    {
-        GMALLOC(szOutpath, Char_t, dwSize + 2);
-        GASSERT(szOutpath != NULL);
-        os_sprintf(szOutpath, "%s/", szPath);
-        szOutpath[dwSize + 1] = '\0';
-        GFREE(szPath);
-    }
-    else
-    {
-        szOutpath = szPath;
-    }
-
-    //! 如果目录不存在，则创建之
-    if (szOutpath != NULL && os_access(szOutpath, 0) != 0)
-    {
-        os_mkdir(szOutpath);
-    }
-
-ERROR:
-    return szOutpath;
+    return gAgentArgs.szOutpath;
 }
 
 /*!
@@ -199,7 +264,22 @@ ERROR:
 */
 GPublic String_t agentargs_get_outname()
 {
-    return agentargs_get_option("outname=");
+    return gAgentArgs.szOutname;
+}
+
+/*!
+*@brief        获取传递给动态库gcmon的outstat的值
+*@author       zhaohm3
+*@retval
+*@note
+*
+*@since    2014-9-25 11:22
+*@attention
+*
+*/
+GPublic String_t agentargs_get_outstat()
+{
+    return gAgentArgs.szOutstat;
 }
 
 /*!
@@ -210,10 +290,10 @@ GPublic String_t agentargs_get_outname()
 *@param[out]   pszArgs      输出参数，表示具体的参数设置
 *@retval       返回参数所设置的大小，单位(Byte)
 *@note         注意数值溢出检测
-* 
+*
 *@since    2014-9-22 10:35
 *@attention
-* 
+*
 */
 GPublic Size64_t vmargs_parse_size(String_t szVmArgs, String_t szPrefix, StringP_t pszArgs)
 {
@@ -283,10 +363,10 @@ ERROR:
 *@retval
 *@note         在JVM中，有形如-Xmn和-XX:NewSize设置等效的情况，JVM会选择参数列表中的
 *              最后一项去设置最终的运行时参数值
-* 
+*
 *@since    2014-9-22 14:52
 *@attention
-* 
+*
 */
 GPrivate Size64_t vmargs_parse_final_size(String_t szVmArgs,
     String_t szPrefix1,
@@ -308,41 +388,137 @@ ERROR:
     return lwSize;
 }
 
+/*!
+*@brief        通过-Xms和-XX:InitialHeapSize解析InitialHeapSize
+*@author       zhaohm3
+*@param[in]    szVmArgs
+*@param[in]    pszArgs
+*@retval
+*@note
+* 
+*@since    2014-9-25 15:39
+*@attention
+* 
+*/
 GPublic Size64_t vmargs_parse_InitialHeapSize(String_t szVmArgs, StringP_t pszArgs)
 {
     return vmargs_parse_final_size(szVmArgs, "-Xms", "-XX:InitialHeapSize=", pszArgs);
 }
 
+/*!
+*@brief        通过-Xmx和-XX:MaxHeapSize解析MaxHeapSize
+*@author       zhaohm3
+*@param[in]    szVmArgs
+*@param[in]    pszArgs
+*@retval
+*@note
+* 
+*@since    2014-9-25 15:40
+*@attention
+* 
+*/
 GPublic Size64_t vmargs_parse_MaxHeapSize(String_t szVmArgs, StringP_t pszArgs)
 {
     return vmargs_parse_final_size(szVmArgs, "-Xmx", "-XX:MaxHeapSize=", pszArgs);
 }
 
+/*!
+*@brief        通过-Xmn和-XX:NewSize解析NewSize
+*@author       zhaohm3
+*@param[in]    szVmArgs
+*@param[in]    pszArgs
+*@retval
+*@note
+* 
+*@since    2014-9-25 15:40
+*@attention
+* 
+*/
 GPublic Size64_t vmargs_parse_NewSize(String_t szVmArgs, StringP_t pszArgs)
 {
     return vmargs_parse_final_size(szVmArgs, "-Xmn", "-XX:NewSize=", pszArgs);
 }
 
+/*!
+*@brief        通过-Xmn和-XX:MaxNewSize解析MaxNewSize
+*@author       zhaohm3
+*@param[in]    szVmArgs
+*@param[in]    pszArgs
+*@retval
+*@note
+* 
+*@since    2014-9-25 15:40
+*@attention
+* 
+*/
 GPublic Size64_t vmargs_parse_MaxNewSize(String_t szVmArgs, StringP_t pszArgs)
 {
     return vmargs_parse_final_size(szVmArgs, "-Xmn", "-XX:MaxNewSize=", pszArgs);
 }
 
+/*!
+*@brief        通过-XX:OldSize解析OldSize
+*@author       zhaohm3
+*@param[in]    szVmArgs
+*@param[in]    pszArgs
+*@retval
+*@note
+* 
+*@since    2014-9-25 15:41
+*@attention
+* 
+*/
 GPublic Size64_t vmargs_parse_OldSize(String_t szVmArgs, StringP_t pszArgs)
 {
     return vmargs_parse_size(szVmArgs, "-XX:OldSize=", pszArgs);
 }
 
+/*!
+*@brief        通过-XX:PermSize解析PermSize
+*@author       zhaohm3
+*@param[in]    szVmArgs
+*@param[in]    pszArgs
+*@retval
+*@note
+* 
+*@since    2014-9-25 15:41
+*@attention
+* 
+*/
 GPublic Size64_t vmargs_parse_PermSize(String_t szVmArgs, StringP_t pszArgs)
 {
     return vmargs_parse_size(szVmArgs, "-XX:PermSize=", pszArgs);
 }
 
+/*!
+*@brief        通过-XX:MaxPermSize解析MaxPermSize
+*@author       zhaohm3
+*@param[in]    szVmArgs
+*@param[in]    pszArgs
+*@retval
+*@note
+* 
+*@since    2014-9-25 15:41
+*@attention
+* 
+*/
 GPublic Size64_t vmargs_parse_MaxPermSize(String_t szVmArgs, StringP_t pszArgs)
 {
     return vmargs_parse_size(szVmArgs, "-XX:MaxPermSize=", pszArgs);
 }
 
+/*!
+*@brief        通过-Xss和-XX:ThreadStackSize解析ThreadStackSize
+*@author       zhaohm3
+*@param[in]    szVmArgs
+*@param[in]    pszArgs
+*@retval
+*@note
+* 
+*@since    2014-9-25 15:41
+*@attention
+* 
+*/
 GPublic Size64_t vmargs_parse_ThreadStackSize(String_t szVmArgs, StringP_t pszArgs)
 {
     return vmargs_parse_final_size(szVmArgs, "-Xss", "-XX:ThreadStackSize=", pszArgs);

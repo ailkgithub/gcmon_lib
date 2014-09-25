@@ -8,8 +8,12 @@
  ****************************************************************/
 
 #include "gcmon/gcmon.h"
+#include "os/os.h"
 #include "sample/sample.h"
 #include "ana/ana.h"
+#include "args/args.h"
+#include "file/file.h"
+#include "perf/perf.h"
 
 //! 当发生OutOfMemoryError异常时，由JVM抛出的内存资源耗尽的提示
 GPrivate String_t gaszExhaustMsg[] =
@@ -40,7 +44,6 @@ GPrivate jrawMonitorID gMonitorID = NULL;           //!< 管程变量，用于同步
 GPrivate Addr_t gPerfMemory = NULL;                 //!< 用于存放JVM性能计数器的共享内存区的地址
 GPrivate RBTreeP_t gpPerfTree = NULL;               //!< 通过pPerfMemory构建的性能树
 GPrivate Perf_Attach_t gfnPerf_Attach = NULL;       //!< jvm动态库中Perf_Attach接口的地址
-GPrivate String_t gszAgentOpts = NULL;              //!< 传递给动态库gcmon的参数
 
 /*!
 *@brief        获取JVM共享的PerfMemory地址
@@ -95,21 +98,6 @@ GPrivate void gcmon_init_perf_tree()
 GPublic RBTreeP_t gcmon_get_perf_tree()
 {
     return gpPerfTree;
-}
-
-/*!
-*@brief        对外接口，获取传递给动态库gcmon的选项
-*@author       zhaohm3
-*@retval
-*@note
-*
-*@since    2014-9-22 15:20
-*@attention
-*
-*/
-GPublic String_t gcmon_get_agent_opts()
-{
-    return gszAgentOpts;
 }
 
 /*!
@@ -388,6 +376,7 @@ GPrivate void JNICALL JVMResourceExhausted(jvmtiEnv *jvmti_env,
 GPrivate void JNICALL JVMGarbageCollectionStart(jvmtiEnv *jvmti_env)
 {
     GCMON_PRINT_FUNC();
+
     if (NULL == gpPerfTree)
     {
         //! 通过gPerfMemory构建性能树
@@ -398,7 +387,8 @@ GPrivate void JNICALL JVMGarbageCollectionStart(jvmtiEnv *jvmti_env)
         GASSERT(gpPerfTree != NULL);
         sample_init(gpPerfTree);
     }
-    sample_doit("Start  GC");
+
+    sample_doit("Start  GC ");
 }
 
 /*!
@@ -415,7 +405,7 @@ GPrivate void JNICALL JVMGarbageCollectionStart(jvmtiEnv *jvmti_env)
 GPrivate void JNICALL JVMGarbageCollectionFinish(jvmtiEnv *jvmti_env)
 {
     GCMON_PRINT_FUNC();
-    sample_doit("Finish GC");
+    sample_doit("Finish GC ");
 }
 
 /*!
@@ -625,8 +615,8 @@ JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *jvm, char *options, void *reserved)
     error = JVMInitJvmtiEnv();
     GCMON_CHECK_ERROR(error, "ERROR: Can't Init JVMTI Env.", ERROR);
 
-    gszAgentOpts = options;
-    gcmon_debug_fopen();
+    args_init_agentargs(options);
+    file_open_all();
 
     return JNI_OK;
 
@@ -651,5 +641,6 @@ JNIEXPORT void JNICALL Agent_OnUnload(JavaVM *vm)
     GCMON_PRINT_FUNC();
     JVMClearJvmtiEnv();
     rbtree_free(gpPerfTree);
-    gcmon_debug_fclose();
+    file_close_all();
+    args_free_agentargs();
 }

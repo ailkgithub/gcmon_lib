@@ -15,26 +15,14 @@
 #include <string.h>
 #include <assert.h>
 #include <stdarg.h>
-
 #include "hotspot/jvmti.h"
+#include "share/type.h"
 
 //! 标记私有接口，不对外提供
 #define GPrivate static
 
 //! 标记公有接口，对外提供
 #define GPublic extern
-
-#include "os/type.h"
-#include "os/os.h"
-
-//! 打开gFile
-GPublic void gcmon_debug_fopen();
-
-//! 关闭gFile
-GPublic void gcmon_debug_fclose();
-
-//! flush文件缓存
-GPublic void gcmon_debug_flush();
 
 //! 打印调试信息
 GPublic int gcmon_debug_msg(const char *fmt, ...);

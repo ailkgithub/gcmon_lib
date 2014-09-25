@@ -76,6 +76,7 @@ OBJS = $(patsubst %.c,%.o,$(wildcard gcmon/src/args/*.c))    \
        $(patsubst %.c,%.o,$(wildcard gcmon/src/rbtree/*.c))   \
        $(patsubst %.c,%.o,$(wildcard gcmon/src/sample/*.c))   \
        $(patsubst %.c,%.o,$(wildcard gcmon/src/ana/*.c))   \
+	   $(patsubst %.c,%.o,$(wildcard gcmon/src/file/*.c))   \
        $(patsubst %.c,%.o,$(wildcard gcmon/src/share/*.c)) 
 
 all : $(OBJS)

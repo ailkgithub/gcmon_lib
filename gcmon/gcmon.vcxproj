@@ -29,6 +29,7 @@
   <ItemGroup>
     <ClCompile Include="src\ana\ana.c" />
     <ClCompile Include="src\args\args.c" />
+    <ClCompile Include="src\file\file.c" />
     <ClCompile Include="src\gcmon\gcmon.c" />
     <ClCompile Include="src\list\list.c" />
     <ClCompile Include="src\os\os.c" />
@@ -40,14 +41,15 @@
   <ItemGroup>
     <ClInclude Include="include\ana\ana.h" />
     <ClInclude Include="include\args\args.h" />
+    <ClInclude Include="include\file\file.h" />
     <ClInclude Include="include\gcmon\gcmon.h" />
     <ClInclude Include="include\list\list.h" />
     <ClInclude Include="include\os\os.h" />
-    <ClInclude Include="include\os\type.h" />
     <ClInclude Include="include\perf\perf.h" />
     <ClInclude Include="include\rbtree\rbtree.h" />
     <ClInclude Include="include\sample\sample.h" />
     <ClInclude Include="include\share\share.h" />
+    <ClInclude Include="include\share\type.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9C5DC614-5DB0-43CB-AC1B-2FC175680DB5}</ProjectGuid>

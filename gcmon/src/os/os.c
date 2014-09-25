@@ -22,7 +22,7 @@
 */
 GPublic void os_fclose(FILE *file)
 {
-    if (file != NULL)
+    if (file != NULL && file != stdout)
     {
         fclose(file);
     }
@@ -244,7 +244,11 @@ GPublic Int_t os_unlink(String_t filename)
 */
 GPublic Int_t os_mkdir(String_t path)
 {
-    return _mkdir(path);
+    Int_t ret = 0;
+    Char_t command[256] = { 0 };
+    os_sprintf(command, "mkdir %s", path);
+    ret = system(command);
+    return ret;
 }
 
 #elif defined(LINUX) || defined(SOLARIS)
@@ -453,7 +457,11 @@ GPublic Int_t os_access(String_t path, Int_t mode)
 */
 GPublic Int_t os_unlink(String_t filename)
 {
-    return unlink(filename);
+    Int_t ret = 0;
+    Char_t command[256] = { 0 };
+    os_sprintf(command, "rm -rf %s", filename);
+    ret = system(command);
+    return ret;
 }
 
 /*!
@@ -469,7 +477,11 @@ GPublic Int_t os_unlink(String_t filename)
 */
 GPublic Int_t os_mkdir(String_t path)
 {
-    return mkdir(path, S_IRWXU);
+    Int_t ret = 0;
+    Char_t command[256] = { 0 };
+    os_sprintf(command, "mkdir -p %s", path);
+    ret = system(command);
+    return ret;
 }
 
 #else

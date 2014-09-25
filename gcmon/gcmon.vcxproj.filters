@@ -28,6 +28,9 @@
     <Filter Include="ana">
       <UniqueIdentifier>{4b2d4461-3fa4-4ddd-90fa-96addd3e747f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="file">
+      <UniqueIdentifier>{c331f99b-c007-43db-9214-13a1b30c34b2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gcmon\gcmon.c">
@@ -57,6 +60,9 @@
     <ClCompile Include="src\os\os.c">
       <Filter>os</Filter>
     </ClCompile>
+    <ClCompile Include="src\file\file.c">
+      <Filter>file</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\rbtree\rbtree.h">
@@ -74,9 +80,6 @@
     <ClInclude Include="include\sample\sample.h">
       <Filter>sample</Filter>
     </ClInclude>
-    <ClInclude Include="include\os\type.h">
-      <Filter>os</Filter>
-    </ClInclude>
     <ClInclude Include="include\args\args.h">
       <Filter>args</Filter>
     </ClInclude>
@@ -88,6 +91,12 @@
     </ClInclude>
     <ClInclude Include="include\os\os.h">
       <Filter>os</Filter>
+    </ClInclude>
+    <ClInclude Include="include\file\file.h">
+      <Filter>file</Filter>
+    </ClInclude>
+    <ClInclude Include="include\share\type.h">
+      <Filter>share</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

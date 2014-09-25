@@ -10,12 +10,14 @@
 #ifndef _args_h__
 #define _args_h__
 
-#include "share/share.h"
 #include "rbtree/rbtree.h"
+
+GPublic void args_init_agentargs(String_t szOptions);
+GPublic void args_free_agentargs();
 
 GPublic String_t args_get_javacmd(RBTreeP_t pPdiTree);
 GPublic String_t args_get_vmargs(RBTreeP_t pPdiTree);
-GPublic String_t args_get_agentargs();
+GPublic String_t args_get_agentopts();
 
 GPublic Size64_t vmargs_parse_size(String_t szVmArgs, String_t szPrefix, StringP_t pszArgs);
 GPublic Size64_t vmargs_parse_InitialHeapSize(String_t szVmArgs, StringP_t pszArgs);
@@ -29,5 +31,6 @@ GPublic Size64_t vmargs_parse_ThreadStackSize(String_t szVmArgs, StringP_t pszAr
 
 GPublic String_t agentargs_get_outpath();
 GPublic String_t agentargs_get_outname();
+GPublic String_t agentargs_get_outstat();
 
 #endif

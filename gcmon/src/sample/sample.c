@@ -9,6 +9,8 @@
 
 #include "sample/sample.h"
 #include "perf/perf.h"
+#include "os/os.h"
+#include "file/file.h"
 
 //! 性能采样项结构体声明
 typedef struct SampleItem SampleItem_t, *SampleItemP_t;
@@ -332,7 +334,7 @@ GPrivate struct
     };
 } gaSout[]=
 {
-    { "Total Time(sec)", S_FD, s_timstamp },
+    { "Time(sec)", S_FD, s_timstamp },
 
     { "Generation Space(KB)", S_FS, NULL },
 
@@ -500,5 +502,10 @@ GPublic void s_out_line(FILE *pFile, String_t szContext)
 */
 GPublic void sample_doit(String_t szContext)
 {
-    s_out_row(NULL, szContext);
+    FILE *pStatFile = file_get_fstat();
+
+    if (pStatFile != NULL)
+    {
+        s_out_row(pStatFile, szContext);
+    }
 }

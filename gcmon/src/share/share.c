@@ -8,60 +8,8 @@
  ****************************************************************/
 
 #include "share/share.h"
-#include "args/args.h"
-
-//! 记录调试信息
-GPrivate FILE *gpDebugFile = NULL;
-
-//! 打开gFile
-GPublic void gcmon_debug_fopen()
-{
-#ifdef DEBUG
-    if (NULL == gpDebugFile)
-    {
-        Char_t szFileName[256] = { 0 };
-        String_t szOutpath = agentargs_get_outpath();
-        String_t szOutname = agentargs_get_outname();
-
-        os_sprintf(szFileName, "%s%s_pid_%d_debug",
-            (szOutpath != NULL) ? szOutpath : "",
-            (szOutname != NULL) ? szOutname : "gcmon",
-            os_getpid());
-
-        GFREE(szOutpath);
-        GFREE(szOutname);
-
-        gpDebugFile = os_fopen(szFileName, "w+");
-    }
-#endif
-}
-
-//! 关闭gFile
-GPublic void gcmon_debug_fclose()
-{
-    if (gpDebugFile != NULL)
-    {
-        os_fflush(gpDebugFile);
-        os_fclose(gpDebugFile);
-    }
-    else
-    {
-        os_fflush(stdout);
-    }
-}
-
-//! flush文件缓存
-GPublic void gcmon_debug_flush()
-{
-    if (gpDebugFile != NULL)
-    {
-        os_fflush(gpDebugFile);
-    }
-    else
-    {
-        os_fflush(stdout);
-    }
-}
+#include "file/file.h"
+#include "os/os.h"
 
  /*!
  *@brief        打印gcmon运行过程中的调试信息
@@ -79,17 +27,17 @@ int gcmon_debug_msg(const char *fmt, ...)
 #ifdef DEBUG
     int len = 0;
     va_list args;
+    FILE *file = file_get_fdebug();
+
+    if (NULL == file)
+    {
+        file = stdout;
+    }
 
     va_start(args, fmt);
-    if (gpDebugFile != NULL)
-    {
-        len = os_vfprintf(gpDebugFile, fmt, args);
-    }
-    else
-    {
-        len = os_vprintf(fmt, args);
-    }
+    len = os_vfprintf(file, fmt, args);
     va_end(args);
+
     return len;
 #else
     return 0;
