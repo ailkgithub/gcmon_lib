@@ -134,6 +134,7 @@ GPublic void file_close_fdebug()
 {
     os_fflush(gpDebugFile);
     os_fclose(gpDebugFile);
+    gpDebugFile = NULL;
 }
 
 /*!
@@ -150,6 +151,7 @@ GPrivate void file_close_fresult()
 {
     os_fflush(gpResultFile);
     os_fclose(gpResultFile);
+    gpResultFile = NULL;
 }
 
 /*!
@@ -166,6 +168,7 @@ GPrivate void file_close_fstat()
 {
     os_fflush(gpStatFile);
     os_fclose(gpStatFile);
+    gpStatFile = NULL;
 }
 
 /*!

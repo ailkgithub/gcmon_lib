@@ -45,6 +45,9 @@ GPrivate Addr_t gPerfMemory = NULL;                 //!< 用于存放JVM性能计数器的
 GPrivate RBTreeP_t gpPerfTree = NULL;               //!< 通过pPerfMemory构建的性能树
 GPrivate Perf_Attach_t gfnPerf_Attach = NULL;       //!< jvm动态库中Perf_Attach接口的地址
 
+GPrivate jvmtiError gcmon_init_jvmtienv();
+GPrivate void gcmon_clear_jvmtienv();
+
 /*!
 *@brief        获取JVM共享的PerfMemory地址
 *@author       zhaohm3
@@ -68,8 +71,7 @@ GPrivate void gcmon_get_perf_address(jvmtiEnv *jvmti_env, JNIEnv* jni_env)
         //! 如果gPerfMemory为空，表示JVM设置了-XX:-UsePerfData选项
         if (NULL == gPerfMemory)
         {
-            os_memset(&gCallbacks, 0, sizeof(jvmtiEventCallbacks));
-            gJvmtiEnv->SetEventCallbacks(gpJvmtiEnv, &gCallbacks, sizeof(jvmtiEventCallbacks));
+            gcmon_clear_jvmtienv();
         }
     }
 }
@@ -530,7 +532,81 @@ GPrivate void JVMSetEventNotificationMode(jvmtiEventMode mode)
 }
 
 /*!
+*@brief        设置gcmon的jvmti环境
+*@author       zhaohm3
+*@retval
+*@note
+*
+*@since    2014-9-15 18:05
+*@attention
+*
+*/
+GPrivate jvmtiError gcmon_init_jvmtienv()
+{
+    jvmtiError error = JVMTI_ERROR_NONE;
+
+    JVMInitCapabilities();
+    error = gJvmtiEnv->AddCapabilities(gpJvmtiEnv, &gCapabilities);
+    GCMON_CHECK_ERROR(error, "ERROR: Can't Set JVMTI Capabilities.", ERROR);
+
+    JVMInitCallbacks();
+    error = gJvmtiEnv->SetEventCallbacks(gpJvmtiEnv, &gCallbacks, sizeof(jvmtiEventCallbacks));
+    GCMON_CHECK_ERROR(error, "ERROR: Can't Set JVMTI Callbacks.", ERROR);
+
+    JVMSetEventNotificationMode(JVMTI_ENABLE);
+
+ERROR:
+    return error;
+}
+
+/*!
+*@brief        初始化JVM的jvmti环境
+*@author       zhaohm3
+*@retval
+*@note
+*
+*@since    2014-9-15 18:05
+*@attention
+*
+*/
+GPrivate jvmtiError JVMInitJvmtiEnv()
+{
+    jvmtiError error = JVMTI_ERROR_NULL_POINTER;
+
+    GCMON_CHECK_COND(gpJvmtiEnv != NULL && gJvmtiEnv != NULL, ERROR);
+    error = gJvmtiEnv->CreateRawMonitor(gpJvmtiEnv, "GC Monitor", &gMonitorID);
+    GCMON_CHECK_ERROR(error, "ERROR: Can't Create Raw Monitor.", ERROR);
+
+    error = gcmon_init_jvmtienv();
+    GCMON_CHECK_ERROR(error, "ERROR: Can't Init JVMTI Env.", ERROR);
+
+ERROR:
+    return error;
+}
+
+/*!
 *@brief        清除gcmon所设置的jvmti环境
+*@author       zhaohm3
+*@retval
+*@note
+*
+*@since    2014-9-15 18:05
+*@attention
+*
+*/
+GPrivate void gcmon_clear_jvmtienv()
+{
+    JVMZeroCapabilities();
+    gJvmtiEnv->AddCapabilities(gpJvmtiEnv, &gCapabilities);
+
+    JVMZeroCallbacks();
+    gJvmtiEnv->SetEventCallbacks(gpJvmtiEnv, &gCallbacks, sizeof(jvmtiEventCallbacks));
+
+    JVMSetEventNotificationMode(JVMTI_DISABLE);
+}
+
+/*!
+*@brief        清理JVM的jvmti环境
 *@author       zhaohm3
 *@retval
 *@note
@@ -551,44 +627,7 @@ GPrivate void JVMClearJvmtiEnv()
         gJvmtiEnv->DestroyRawMonitor(gpJvmtiEnv, gMonitorID);
     }
 
-    JVMZeroCapabilities();
-    gJvmtiEnv->AddCapabilities(gpJvmtiEnv, &gCapabilities);
-
-    JVMZeroCallbacks();
-    gJvmtiEnv->SetEventCallbacks(gpJvmtiEnv, &gCallbacks, sizeof(jvmtiEventCallbacks));
-
-    JVMSetEventNotificationMode(JVMTI_DISABLE);
-}
-
-/*!
-*@brief        设置gcmon的jvmti环境
-*@author       zhaohm3
-*@retval
-*@note
-*
-*@since    2014-9-15 18:05
-*@attention
-*
-*/
-GPrivate jvmtiError JVMInitJvmtiEnv()
-{
-    jvmtiError error = JVMTI_ERROR_NONE;
-
-    error = gJvmtiEnv->CreateRawMonitor(gpJvmtiEnv, "GC Monitor", &gMonitorID);
-    GCMON_CHECK_ERROR(error, "ERROR: Can't Create Raw Monitor!", ERROR);
-
-    JVMInitCapabilities();
-    error = gJvmtiEnv->AddCapabilities(gpJvmtiEnv, &gCapabilities);
-    GCMON_CHECK_ERROR(error, "ERROR: Can't Set JVMTI Capabilities.", ERROR);
-
-    JVMInitCallbacks();
-    error = gJvmtiEnv->SetEventCallbacks(gpJvmtiEnv, &gCallbacks, sizeof(jvmtiEventCallbacks));
-    GCMON_CHECK_ERROR(error, "ERROR: Can't Set Callbacks.", ERROR);
-
-    JVMSetEventNotificationMode(JVMTI_ENABLE);
-
-ERROR:
-    return error;
+    gcmon_clear_jvmtienv();
 }
 
 /*!
@@ -620,16 +659,16 @@ JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *jvm, char *options, void *reserved)
 
     gJvmtiEnv = *gpJvmtiEnv;
     error = JVMInitJvmtiEnv();
-    GCMON_CHECK_ERROR(error, "ERROR: Can't Init JVMTI Env.", ERROR);
+    if (error != JVMTI_ERROR_NONE)
+    {
+        JVMClearJvmtiEnv();
+        return JNI_ERR;
+    }
 
     args_init_agentargs(options);
     file_open_all();
 
     return JNI_OK;
-
-ERROR:
-    JVMClearJvmtiEnv();
-    return JNI_ERR;
 }
 
 /*!
