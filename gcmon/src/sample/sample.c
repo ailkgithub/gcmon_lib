@@ -225,7 +225,7 @@ GPublic Double_t s_ygct()
 
 GPublic Double_t s_aygct()
 {
-    return s_ygct() / S_DOUBLE(gYGC);
+    return (s_ygc() > 0) ? s_ygct() / S_DOUBLE(gYGC) : 0.000;
 }
 
 GPrivate Double_t s_cygct()
@@ -243,7 +243,7 @@ GPublic Double_t s_fgct()
 
 GPublic Double_t s_afgct()
 {
-    return s_fgct() / S_DOUBLE(gFGC);
+    return (s_fgc() > 0) ? s_fgct() / S_DOUBLE(gFGC) : 0.000;
 }
 
 GPrivate Double_t s_cfgct()
@@ -306,12 +306,12 @@ GPublic Double_t s_pgc()
 
 GPublic Double_t s_ygctp()
 {
-    return (Double_t)((1.000 - ((s_gct() - s_ygct()) / s_gct())) * 100.000);
+    return (s_ygc() > 0) ? (Double_t)((1.000 - ((s_gct() - s_ygct()) / s_gct())) * 100.000) : 0.000;
 }
 
 GPublic Double_t s_fgctp()
 {
-    return (Double_t)((1.000 - ((s_gct() - s_fgct()) / s_gct())) * 100.000);
+    return (s_fgc() > 0) ? (Double_t)((1.000 - ((s_gct() - s_fgct()) / s_gct())) * 100.000) : 0.000;
 }
 
 GPublic Double_t s_gctp()
