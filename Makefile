@@ -19,7 +19,7 @@ BIT = 64
 OUT_DIR = output
 
 #-----------------------------------------
-# include dirs and source dirs 
+# include dirs and source dirs
 #-----------------------------------------
 INC_DIR = ./gcmon/include
 SRC_DIR = ./gcmon
@@ -34,57 +34,54 @@ GCMON_NAME = libgcmon
 #-----------------------------------------
 CC = gcc
 
-ifeq (gcc, $(CC))
-  _PIC = -fpic
-  ifeq ($(BIT), 64)
-    _MODE = -shared -m64
-  endif
-  ifeq ($(BIT), 32)
-    _MODE = -shared -m32
-  endif
+ifeq ($(CC), gcc)
+    _PIC = -fpic
+    _MODE = -shared
 endif
 
-ifeq (Solaris, $(OS))
-  CPPFLAGS := $(_OTHER) $(_PIC) -I$(INC_DIR) -I$(INC_DIR)/hotspot/linux -I$(SRC_DIR) -DSOLARIS -m64
-endif
+CPPFLAGS := $(_PIC) -I$(INC_DIR) -I$(INC_DIR)/hotspot/linux -I$(SRC_DIR)
 
-ifeq (Linux, $(OS))
-    CPPFLAGS := $(_PIC) -I$(INC_DIR) -I$(INC_DIR)/hotspot/linux -I$(SRC_DIR) -DLINUX
-  ifeq ($(BIT), 64)
-     CPPFLAGS+= -DOS_64BIT -m64 
-    _MODE = -shared -m64
-  endif
-  ifeq ($(BIT), 32)
-    CPPFLAGS+= -m32
-        _MODE = -shared -m32
-  endif
-endif
-
-ifeq ($(TYPE), debug)
-  CPPFLAGS+= -ggdb -DDEBUG
+ifeq ($(OS), Linux)
+    CPPFLAGS+= -DLINUX
 else
-  ifeq ($(TYPE), release)       
-      CPPFLAGS+= -DNDEBUG -O3 
-  endif
+ifeq ($(OS), Solaris)
+    CPPFLAGS+= -DSOLARIS
+endif
+endif
+
+ifeq ($(TYPE), release)
+    CPPFLAGS+= -DNDEBUG -O3
+else
+ifeq ($(TYPE), debug)
+    CPPFLAGS+= -ggdb -DDEBUG
+endif
+endif
+
+ifeq ($(BIT), 64)
+    CPPFLAGS+= -DOS_64BIT -m64
+else
+ifeq ($(BIT), 32)
+    CPPFLAGS+= -m32
+endif
 endif
 
 OBJS = $(patsubst %.c,%.o,$(wildcard gcmon/src/args/*.c))    \
-       $(patsubst %.c,%.o,$(wildcard gcmon/src/gcmon/*.c))  \
-       $(patsubst %.c,%.o,$(wildcard gcmon/src/list/*.c))   \
-       $(patsubst %.c,%.o,$(wildcard gcmon/src/os/*.c))     \
+       $(patsubst %.c,%.o,$(wildcard gcmon/src/gcmon/*.c))   \
+       $(patsubst %.c,%.o,$(wildcard gcmon/src/list/*.c))    \
+       $(patsubst %.c,%.o,$(wildcard gcmon/src/os/*.c))      \
        $(patsubst %.c,%.o,$(wildcard gcmon/src/perf/*.c))    \
-       $(patsubst %.c,%.o,$(wildcard gcmon/src/rbtree/*.c))   \
-       $(patsubst %.c,%.o,$(wildcard gcmon/src/sample/*.c))   \
-       $(patsubst %.c,%.o,$(wildcard gcmon/src/ana/*.c))   \
-	   $(patsubst %.c,%.o,$(wildcard gcmon/src/file/*.c))   \
-       $(patsubst %.c,%.o,$(wildcard gcmon/src/share/*.c)) 
+       $(patsubst %.c,%.o,$(wildcard gcmon/src/rbtree/*.c))  \
+       $(patsubst %.c,%.o,$(wildcard gcmon/src/sample/*.c))  \
+       $(patsubst %.c,%.o,$(wildcard gcmon/src/ana/*.c))     \
+       $(patsubst %.c,%.o,$(wildcard gcmon/src/file/*.c))    \
+       $(patsubst %.c,%.o,$(wildcard gcmon/src/share/*.c))   
 
 all : $(OBJS)
 	mkdir -p $(OUT_DIR)/$(OS)$(BIT)
 	ar crv $(OUT_DIR)/$(OS)$(BIT)/$(GCMON_NAME).a $(OBJS)
 	ranlib $(OUT_DIR)/$(OS)$(BIT)/$(GCMON_NAME).a  
 
-	$(CC) -O2 $(_PIC) $(_MODE) $(OBJS) $(LIBS) -o $(OUT_DIR)/$(OS)$(BIT)/$(GCMON_NAME).so
+	$(CC) $(CPPFLAGS) $(_MODE) $(OBJS) -o $(OUT_DIR)/$(OS)$(BIT)/$(GCMON_NAME).so
 
 clean : 
 	rm -rf $(OBJS)
