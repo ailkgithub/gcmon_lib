@@ -13,10 +13,8 @@
 /*                             结构体定义                                 */
 /************************************************************************/
 
-typedef struct RBNode RBNode_t, *RBNodeP_t;
-typedef enum RBColor RBColor_t, *RBColorP_t;
-
 //! 红黑树节点颜色枚举类
+typedef enum RBColor RBColor_t, *RBColorP_t;
 enum RBColor
 {
     RBC_NONE = 0,                                   //!< 初始化默认色
@@ -25,6 +23,7 @@ enum RBColor
 };
 
 //! 红黑树节点定义，此定义不对外提供，与此类相关的接口亦不对外提供
+typedef struct RBNode RBNode_t, *RBNodeP_t;
 struct RBNode
 {
     RBColor_t mColor;                               //!< 当前节点颜色

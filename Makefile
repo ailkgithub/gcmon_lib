@@ -1,5 +1,5 @@
 #-----------------------------------------
-# OS: target operation system, currently support: Linux, Solaris
+# target operation system, currently support: Linux, Solaris
 #-----------------------------------------
 OS = Linux
 
@@ -14,7 +14,7 @@ TYPE = release
 BIT = 64
 
 #-----------------------------------------
-# output dirs
+# output dir
 #-----------------------------------------
 OUT_DIR = output
 
@@ -25,7 +25,7 @@ INC_DIR = ./gcmon/include
 SRC_DIR = ./gcmon
 
 #-----------------------------------------
-# gcmon library properties
+# gcmon library name
 #-----------------------------------------
 GCMON_NAME = libgcmon
 

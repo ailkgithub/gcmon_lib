@@ -1,0 +1,149 @@
+README - GCMON - 2014-09-23
+---------------------------------
+
+
+INTRODUCTION
+
+    GCMON is a agent tools to gather performance statistics of JVM runtime informations, and logs
+    out them to a file or standard output stream as specified by the command line options.
+
+    As a result, GCMON will make a file, record the snapshot of system memory usage and each generation's
+    space of JVM when the OutOfMemroyError exception occurs, finally it will send a diagnostic message to
+    the user, and calculate a suggestion based on those informations.
+
+
+COMPILE
+
+    Compile on windows
+    
+        0.Install Visual Studio 2013.
+        
+        1.Open "gcmon.sln" with Visual Studio 2013.
+        
+        2.Configure platform settings and compile options (Win32 or X64, Debug or Release).
+        
+        3.Build the gcmon project.
+        
+        4.Go to output\gcmon\dll\$(Platform)\$(Configuration)\, the DLL file "gcmon.dll" is there.
+        
+        For example, if you set x64 and Release, "gcmon.dll" will be built in output\gcmon\dll\x64\Release\ dir.
+
+    Compile on Linux or Solaris
+
+        0.Open "Makefile" to configure platform settings and compile options. (OS, TYPE, BIT, OUT_DIR)
+
+        1.execute command "make clean && make all".
+
+        For example, if you set OS = Linux, TYPE = release, BIT = 64, OUT_DIR = output, and then execute
+        the command "make clean && make all", the release version of the target share object file "libgcmon.so"
+        will be build in output/Linux64/ dir.
+
+
+LOAD
+
+    GCMON is JVMTI agent library, so you can use JVM options "-agentlib:<agent-lib-name>=<options>"
+    or "-agentpath:<path-to-agent>=<options>" to load GCMON while starting a JVM.
+
+    If you want to use "-agentlib:<agent-lib-name>=<options>" option to load GCMON, you should copy file
+    "gcmon.dll" or "libgcmon.so" into the same dir where "java.dll" or "libjava.so" is located, this dir is
+    %JAVA_HOME%\jre\bin on Windows or $(JAVA_HOME)/jre/lib/amd64 on Linux in x86_64 platform, after copy,
+    you can load GCMON as follows:
+
+    java -agentlib:gcmon=outpath=outdir,outname=filename,outstat=file ...
+
+    You can also load GCMON by the JVM option "-agentpath:<path-to-agent>=<options>" without copying as follows:
+
+    java -agentpath:D:\gcmon_lib\output\gcmon\dll\x64\Release\gcmon.dll=outpath=outdir,outname=filename,outstat=file ...
+    java -agentpath:/gcmon_lib/output/Linux64/libgcmon.so=outpath=outdir,outname=filename,outstat=file ...
+
+
+OPTIONS
+
+    You can specific some options to GCMON to acquire it puts the result files into the specified dir with the
+    specified name, if you do not specific those options, GCMON will puts those files into the current dir and
+    use a prefix name "gcmon" as default, options that supported by the current version of GCMON as follows:
+
+    0.outpath
+
+        The option "outpath" specifics the dir where result files will be create.
+
+        If this option is not specified, the current dir will be used.
+
+    1.outname
+
+        The option "outname" specifics the prefix name of each result file.
+
+        For example, if you set "outname=myfile" to GCMON, the result file name will be named to "myfile_pid_6552.result",
+        the statistic file will be named to "myfile_pid_6552.stat" and the file which is used for recording debug 
+        informations on DEBUG mode will be named to "myfile_pid_6552.debug", where the number 6552 is the process ID
+        of this JVM.
+
+        If this option is not specified, the default prefix "gcmon" will be used.
+
+    2.outstat
+
+        The option "outstat" specifics where the statistic informations that gathered before and after each GC to put.
+        only "stdout" and "file" are valid values of this option, others will be ignored automatically.
+
+        "stdout" means to put those informations directly to the standard output stream.
+        "file" means to put those informations into a file, the file's prefix name is specified by "outname" option.
+
+        For example, if you set "outstat=stdout", those statistic informations will be printed directly into standard
+        output stream, if you set "outstat=file", those statistic informations will be printed into a file.
+
+        If this option is not specified or if you set other value to "outstat", nothing will be printed.
+
+
+MEANS
+
+    The contents of statistics informations are similar to the output of jstat tools, more details as follows:
+
+    Time        Current run time (sec).
+
+    S0C         Current survivor 0 space capacity (KB).
+    S1C         Current survivor 1 space capacity (KB).
+    EC          Current eden space capacity (KB).
+    OC          Current old space capacity (KB).
+    PC          Current permanent space capacity (KB).
+
+    S0U         Current survivor 0 space used (KB).
+    S0F         Current survivor 0 space free (KB).
+    S1U         Current survivor 1 space used (KB).
+    S1F         Current survivor 1 space free (KB).
+    EU          Current eden space used (KB).
+    EF          Current eden space free (KB).
+    OU          Current old space used (KB).
+    OF          Current old space free (KB).
+    PU          Current permanent space used (KB).
+    PF          Current permanent space free (KB).
+
+    S0P         Percentage of current survivor 0 space used.
+    S1P         Percentage of current survivor 1 space used.
+    EP          Percentage of current eden space used.
+    OP          Percentage of current old space used.
+    PP          Percentage of permanent space used.
+
+    NGCMIN      Minimum new generation capacity (KB).
+    NGCMAX      Maximum new generation capacity (KB).
+    NGC         Current new generation capacity (KB).
+
+    OGCMIN      Minimum old generation capacity (KB).
+    OGCMAX      Maximum old generation capacity (KB).
+    OGC         Current old generation capacity (KB).
+
+    PGCMIN      Minimum permanent generation capacity (KB).
+    PGCMAX      Maximum permanent generation capacity (KB).
+    PGC         Current permanent generation capacity (KB).
+
+    YGC         Number of young generation GC events.
+    YGCT        Total young generation garbage collection time (sec).
+    AYGCT       Average time of each young generation garbage collection (sec).
+    YGCTP       Percentage of total young generation garbage collection time in total garbage collection time.
+
+    FGC         Number of full GC events.
+    FGCT        Total full garbage collection time.
+    AFGCT       Average time of each full garbage collection (sec).
+    FGCTP       Percentage of total full garbage collection time in total garbage collection time.
+    
+    GCT         Total garbage collection time.
+    GCTP        Percentage of total garbage collection time in total run time.
