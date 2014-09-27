@@ -4,7 +4,7 @@ README - GCMON - 2014-09-23
 
 INTRODUCTION
 
-    GCMON is a agent tools to gather performance statistics of JVM runtime informations, and logs
+    GCMON is an agent tool to gather performance statistics of JVM runtime informations, and log
     out them to a file or standard output stream as specified by the command line options.
 
     As a result, GCMON will make a file, record the snapshot of system memory usage and each generation's
@@ -32,11 +32,17 @@ COMPILE
 
         0.Open "Makefile" to configure platform settings and compile options. (OS, TYPE, BIT, OUT_DIR)
 
-        1.execute command "make clean && make all".
+        1.execute the command "make clean && make all".
 
         For example, if you set OS = Linux, TYPE = release, BIT = 64, OUT_DIR = output, and then execute
         the command "make clean && make all", the release version of the target share object file "libgcmon.so"
-        will be build in output/Linux64/ dir.
+        will be build in output/Linux64/release/ dir.
+
+        By the way, you can also compile GCMON by passing arguments to the command "make" without opening
+        "Makefile" and configuring platform settings and compile options manually.
+
+        For example, if you execute the command "make clean && make all OS=Linux TYPE=debug BIT=64", the debug 
+        version of the target share object file "libgcmon.so" will be build in output/Linux64/debug/ dir.
 
 
 LOAD
