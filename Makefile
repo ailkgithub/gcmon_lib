@@ -1,22 +1,34 @@
 #-----------------------------------------
 # target operation system, currently support: Linux, Solaris
 #-----------------------------------------
-OS = Linux
+ifndef OS
+    OS = Linux
+endif
+
 
 #-----------------------------------------
 # gcmon compile mode support: debug, release
 #-----------------------------------------
-TYPE = release
+ifndef TYPE
+    TYPE = release
+endif
+
 
 #-----------------------------------------
-# 32bit or 64bit operating system
+# 32bit or 64bit operating system: 32, 64
 #-----------------------------------------
-BIT = 64
+ifndef BIT
+    BIT = 64
+endif
+
 
 #-----------------------------------------
 # output dir
 #-----------------------------------------
-OUT_DIR = output
+ifndef OUT_DIR
+    OUT_DIR = output
+endif
+
 
 #-----------------------------------------
 # include dirs and source dirs
@@ -39,30 +51,27 @@ ifeq ($(CC), gcc)
     _MODE = -shared
 endif
 
-CPPFLAGS := $(_PIC) -I$(INC_DIR) -I$(INC_DIR)/hotspot/linux -I$(SRC_DIR)
+CFLAGS = $(_PIC) -I$(INC_DIR) -I$(INC_DIR)/hotspot/linux -I$(SRC_DIR)
 
 ifeq ($(OS), Linux)
-    CPPFLAGS+= -DLINUX
-else
-ifeq ($(OS), Solaris)
-    CPPFLAGS+= -DSOLARIS
+    CFLAGS += -DLINUX
 endif
+ifeq ($(OS), Solaris)
+    CFLAGS += -DSOLARIS
 endif
 
 ifeq ($(TYPE), release)
-    CPPFLAGS+= -DNDEBUG -O3
-else
-ifeq ($(TYPE), debug)
-    CPPFLAGS+= -ggdb -DDEBUG
+    CFLAGS += -DNDEBUG -O3
 endif
+ifeq ($(TYPE), debug)
+    CFLAGS += -ggdb -DDEBUG
 endif
 
 ifeq ($(BIT), 64)
-    CPPFLAGS+= -DOS_64BIT -m64
-else
-ifeq ($(BIT), 32)
-    CPPFLAGS+= -m32
+    CFLAGS += -DOS_64BIT -m64
 endif
+ifeq ($(BIT), 32)
+    CFLAGS += -m32
 endif
 
 OBJS = $(patsubst %.c,%.o,$(wildcard gcmon/src/args/*.c))    \
@@ -76,13 +85,15 @@ OBJS = $(patsubst %.c,%.o,$(wildcard gcmon/src/args/*.c))    \
        $(patsubst %.c,%.o,$(wildcard gcmon/src/file/*.c))    \
        $(patsubst %.c,%.o,$(wildcard gcmon/src/share/*.c))   
 
+TARGET_DIR = $(OUT_DIR)/$(OS)$(BIT)/$(TYPE)
+
 all : $(OBJS)
-	mkdir -p $(OUT_DIR)/$(OS)$(BIT)
-	ar crv $(OUT_DIR)/$(OS)$(BIT)/$(GCMON_NAME).a $(OBJS)
-	ranlib $(OUT_DIR)/$(OS)$(BIT)/$(GCMON_NAME).a  
+	mkdir -p $(TARGET_DIR)
+	ar crv $(TARGET_DIR)/$(GCMON_NAME).a $(OBJS)
+	ranlib $(TARGET_DIR)/$(GCMON_NAME).a  
 
-	$(CC) $(CPPFLAGS) $(_MODE) $(OBJS) -o $(OUT_DIR)/$(OS)$(BIT)/$(GCMON_NAME).so
-
+	$(CC) $(CFLAGS) $(_MODE) $(OBJS) -o $(TARGET_DIR)/$(GCMON_NAME).so
+	
 clean : 
 	rm -rf $(OBJS)
 	rm -rf $(OUT_DIR)
