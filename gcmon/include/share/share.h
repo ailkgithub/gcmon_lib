@@ -35,7 +35,7 @@ do                                                          \
     if (e != JVMTI_ERROR_NONE)                              \
     {                                                       \
         gcmon_debug_msg("JVMTI Error No. = %d : %s in %s --> %s : %d \n", e, msg, __FUNCTION__, __FILE__, __LINE__); \
-        os_printf("JVMTI Error No. = %d : %s \n", e, msg); \
+        os_printf("JVMTI Error No. = %d : %s \n", e, msg);  \
         goto where;                                         \
     }                                                       \
 } while (0)

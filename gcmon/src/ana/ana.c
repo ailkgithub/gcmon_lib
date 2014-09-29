@@ -266,14 +266,21 @@ GPublic void ana_OOM_Java_heap_space(RBTreeP_t pPdiTree)
              * 2、操作系统内存不足
              */
             os_fprintf(pAnaFile,
-                "Max heap size is "FMTF"KB,\nCurrent used heap size is "FMTF"KB,\nHeap resource is exhausted.\n",
+                "Max heap size is "FMTF"KB,\n"
+                "Current used heap size is "FMTF"KB,\n"
+                "Heap resource is exhausted.\n",
                  dfMaxHeapSize, dfHeapUsed);
             os_fprintf(pAnaFile,
-                "\nPhysical memory size is "FMTL"KB,\nCurrent usable size is "FMTL"KB,\nPhysical memory resource is exhausted.\n",
+                "\nPhysical memory size is "FMTL"KB,\n"
+                "Current usable size is "FMTL"KB,\n"
+                "Physical memory resource is exhausted.\n",
                  BYTE2KB(sMemInfo.sPhys.lwTotalPhys),
                  BYTE2KB(sMemInfo.sPhys.lwAvailPhys));
             os_fprintf(pAnaFile, "\n\n8.JVM OOM Analyze Suggestions: \n\n");
-            os_fprintf(pAnaFile, "Set a value bigger than "FMTL"KB to -Xmx or -XX:MaxHeapSize, and clear the application's cache.\n", (Size64_t)dfMaxHeapSize);
+            os_fprintf(pAnaFile,
+                "Set a value bigger than "FMTL"KB to -Xmx or -XX:MaxHeapSize,"
+                " and clear the application's cache.\n",
+                (Size64_t)dfMaxHeapSize);
         }
         else
         {
@@ -282,14 +289,20 @@ GPublic void ana_OOM_Java_heap_space(RBTreeP_t pPdiTree)
             * 2、操作系统内存还有剩余
             */
             os_fprintf(pAnaFile,
-                "Max heap size is "FMTF"KB,\nCurrent used heap size is "FMTF"KB,\nHeap resource is exhausted.\n",
+                "Max heap size is "FMTF"KB,\n"
+                "Current used heap size is "FMTF"KB,\n"
+                "Heap resource is exhausted.\n",
                  dfMaxHeapSize, dfHeapUsed);
             os_fprintf(pAnaFile,
-                "\nPhysical memory size is "FMTL"KB,\nCurrent usable size is "FMTL"KB,\nPhysical memory resource is available.\n",
+                "\nPhysical memory size is "FMTL"KB,\n"
+                "Current usable size is "FMTL"KB,\n"
+                "Physical memory resource is available.\n",
                  BYTE2KB(sMemInfo.sPhys.lwTotalPhys),
                  BYTE2KB(sMemInfo.sPhys.lwAvailPhys));
             os_fprintf(pAnaFile, "\n\n8.JVM OOM Analyze Suggestions: \n\n");
-            os_fprintf(pAnaFile, "Set a value bigger than "FMTL"KB to -Xmx or -XX:MaxHeapSize.\n", (Size64_t)dfMaxHeapSize);
+            os_fprintf(pAnaFile,
+                "Set a value bigger than "FMTL"KB to -Xmx or -XX:MaxHeapSize.\n",
+                (Size64_t)dfMaxHeapSize);
         }
     }
     else
@@ -302,10 +315,14 @@ GPublic void ana_OOM_Java_heap_space(RBTreeP_t pPdiTree)
             * 2、操作系统内存不足
             */
             os_fprintf(pAnaFile,
-                "Max heap size is "FMTF"KB,\nCurrent used heap size is "FMTF"KB,\nHeap resource is available.\n",
+                "Max heap size is "FMTF"KB,\n"
+                "Current used heap size is "FMTF"KB,\n"
+                "Heap resource is available.\n",
                  dfMaxHeapSize, dfHeapUsed);
             os_fprintf(pAnaFile,
-                "\nPhysical memory size is "FMTL"KB,\nCurrent usable size is "FMTL"KB,\nPhysical memory resource is exhausted.\n",
+                "\nPhysical memory size is "FMTL"KB,\n"
+                "Current usable size is "FMTL"KB,\n"
+                "Physical memory resource is exhausted.\n",
                  BYTE2KB(sMemInfo.sPhys.lwTotalPhys),
                  BYTE2KB(sMemInfo.sPhys.lwAvailPhys));
             os_fprintf(pAnaFile, "\n\n8.JVM OOM Analyze Suggestions: \n\n");
@@ -318,10 +335,14 @@ GPublic void ana_OOM_Java_heap_space(RBTreeP_t pPdiTree)
             * 2、操作系统内存还有剩余
             */
             os_fprintf(pAnaFile,
-                "Max heap size is "FMTF"KB,\nCurrent used heap size is "FMTF"KB,\nHeap resource is available.\n",
+                "Max heap size is "FMTF"KB,\n"
+                "Current used heap size is "FMTF"KB,\n"
+                "Heap resource is available.\n",
                  dfMaxHeapSize, dfHeapUsed);
             os_fprintf(pAnaFile,
-                "\nPhysical memory size is "FMTL"KB,\nCurrent usable size is "FMTL"KB,\nPhysical memory resource is available.\n",
+                "\nPhysical memory size is "FMTL"KB,\n"
+                "Current usable size is "FMTL"KB,\n"
+                "Physical memory resource is available.\n",
                  BYTE2KB(sMemInfo.sPhys.lwTotalPhys),
                  BYTE2KB(sMemInfo.sPhys.lwAvailPhys));
             os_fprintf(pAnaFile, "\n\n8.JVM OOM Analyze Suggestions: \n\n");

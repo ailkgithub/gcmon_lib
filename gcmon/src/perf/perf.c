@@ -580,7 +580,7 @@ ERROR:
 *@attention
 * 
 */
-GPrivate void perf_print_verbose(Addr_t address)
+GPublic void perf_print_verbose(Addr_t address)
 {
     PerfDataPrologueP_t pPerf = (PerfDataPrologueP_t)address;
 

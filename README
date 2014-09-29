@@ -36,21 +36,21 @@ COMPILE
 
         For example, if you set OS = Linux, TYPE = release, BIT = 64, OUT_DIR = output, and then execute
         the command "make clean && make all", the release version of the target share object file "libgcmon.so"
-        will be build in output/Linux64/release/ dir.
+        will be built in output/Linux64/release/ dir.
 
         By the way, you can also compile GCMON by passing arguments to the command "make" without opening
         "Makefile" and configuring platform settings and compile options manually.
 
         For example, if you execute the command "make clean && make all OS=Linux TYPE=debug BIT=64", the debug 
-        version of the target share object file "libgcmon.so" will be build in output/Linux64/debug/ dir.
+        version of the target share object file "libgcmon.so" will be built in output/Linux64/debug/ dir.
 
 
 LOAD
 
-    GCMON is JVMTI agent library, so you can use JVM options "-agentlib:<agent-lib-name>=<options>"
+    GCMON is a JVMTI agent library, so you can use JVM options "-agentlib:<agent-lib-name>=<options>"
     or "-agentpath:<path-to-agent>=<options>" to load GCMON while starting a JVM.
 
-    If you want to use "-agentlib:<agent-lib-name>=<options>" option to load GCMON, you should copy file
+    If you want to use "-agentlib:<agent-lib-name>=<options>" option to load GCMON, you should copy the file
     "gcmon.dll" or "libgcmon.so" into the same dir where "java.dll" or "libjava.so" is located, this dir is
     %JAVA_HOME%\jre\bin on Windows or $(JAVA_HOME)/jre/lib/amd64 on Linux in x86_64 platform, after copy,
     you can load GCMON as follows:
@@ -71,7 +71,7 @@ OPTIONS
 
     0.outpath
 
-        The option "outpath" specifics the dir where result files will be create.
+        The option "outpath" specifics the dir where result files will be created.
 
         If this option is not specified, the current dir will be used.
 
