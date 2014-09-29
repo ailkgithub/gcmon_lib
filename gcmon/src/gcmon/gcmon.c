@@ -90,6 +90,7 @@ GPrivate void gcmon_init_perf_tree()
 {
     if (gPerfMemory != NULL && NULL == gpPerfTree)
     {
+        /* perf_print_verbose(gPerfMemory);*/
         gpPerfTree = pdi_build_tree(gPerfMemory);
     }
 }
@@ -334,8 +335,23 @@ GPrivate void JNICALL JVMNativeMethodBind(jvmtiEnv *jvmti_env,
                 gcmon_get_perf_address(jvmti_env, jni_env);
             }
 
-            /* gcmon_debug_msg("%s --> method = 0x%p \t address = 0x%p \t new_address_ptr = 0x%p \t *new_address_ptr = 0x%p name = %s \t sig = %s \t gsig = %s \n",
-                __FUNCTION__, method, address, new_address_ptr, *new_address_ptr, szName, szSig, szGsig);*/
+            /*
+            gcmon_debug_msg("%s --> method = 0x%p "
+                "\t address = 0x%p "
+                "\t new_address_ptr = 0x%p "
+                "\t *new_address_ptr = 0x%p "
+                "\t name = %s "
+                "\t sig = %s "
+                "\t gsig = %s \n",
+                __FUNCTION__,
+                method,
+                address,
+                new_address_ptr,
+                *new_address_ptr,
+                szName,
+                szSig,
+                szGsig);
+            */
 
             gJvmtiEnv->Deallocate(gpJvmtiEnv, szName);
             gJvmtiEnv->Deallocate(gpJvmtiEnv, szSig);
