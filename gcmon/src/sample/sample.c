@@ -379,13 +379,13 @@ GPrivate struct
 
     { "GC Information", S_FS, NULL },
 
-    { "YGC", S_FL, s_ygc },
+    { "YGC", S_FL, (Double_t(*)())s_ygc },
     { "YGCT", S_FD, s_ygct },
     { "AYGCT", S_FD, s_aygct },
     /*{ "CYGCT", S_FD, s_cygct },*/
     { "YGCTP", S_FD, s_ygctp },
 
-    { "FGC", S_FL, s_fgc },
+    { "FGC", S_FL, (Double_t(*)())s_fgc },
     { "FGCT", S_FD, s_fgct },
     { "AFGCT", S_FD, s_afgct },
     /*{ "CFGCT", S_FD, s_cfgct },*/

@@ -525,8 +525,8 @@ GPublic RBTreeP_t pdi_build_tree(Addr_t pPerfMemory)
     GCMON_CHECK_NULL(pPerfMemory, ERROR);
     pTree = rbtree_new();
     GCMON_CHECK_NULL(pTree, ERROR);
-    rbtree_set_rbd_compare(pTree, pdi_compare);
-    rbtree_set_rbd_free(pTree, pdi_free);
+    rbtree_set_rbd_compare(pTree, (Int32_t(*)(RBDataP_t, RBDataP_t))pdi_compare);
+    rbtree_set_rbd_free(pTree, (void(*)(RBDataP_t))pdi_free);
 
     pPerf = (PerfDataPrologueP_t)pPerfMemory;
     pCurr = (Addr_t)(((Addr_t)pPerf) + pPerf->entry_offset);

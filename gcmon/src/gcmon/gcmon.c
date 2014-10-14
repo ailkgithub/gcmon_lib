@@ -31,7 +31,17 @@ GPrivate String_t gaszExhaustMsg[] =
     [GOOM_PERM_SPACE] = "PermGen space",
 
     //! 创建的数组元素个数太多，导致无法分配内存
-    [GOOM_ARRAY_SIZE] = "Requested array size exceeds VM limit"
+    [GOOM_ARRAY_SIZE] = "Requested array size exceeds VM limit",
+
+    //! NIO堆外直接缓存使用导致OOM
+    [GOOM_DIRECT_BUFF] = "Direct buffer memory",
+
+    /*!
+     * FileChannelImpl.c 内存映射文件数目达到上限
+     * (/proc/sys/vm/max_map_count),
+     * 或者创建内存映射文件时，内存或地址空间不足
+     */
+    [GOOM_MAP_FAILED] = "Map failed"
 };
 
 typedef jobject(JNICALL *Perf_Attach_t)(JNIEnv *, jobject, jstring, int, int);
