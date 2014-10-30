@@ -11,6 +11,7 @@
 #define _gcmon_h__
 
 #include "rbtree/rbtree.h"
+#include "sample/sample.h"
 
 //! 用于处理java.lang.OutOfMemoryError异常
 #define GOOM_HEAP_SPACE     0                           //!< Java heap space
@@ -22,5 +23,7 @@
 #define GOOM_MAP_FAILED     6                           //!< Map failed
 
 GPublic RBTreeP_t gcmon_get_perf_tree();
+GPublic SouterP_t gcmon_get_souter();
+GPublic String_t gcmon_get_oom_desc(Int32_t sdwOOMType);
 
 #endif

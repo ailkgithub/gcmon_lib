@@ -251,6 +251,22 @@ GPublic Int32_t os_mkdir(String_t path)
     return ret;
 }
 
+/*!
+*@brief        当前线程进入睡眠期
+*@author       zhaohm3
+*@param[in]    msec     睡眠的毫秒数
+*@retval
+*@note
+* 
+*@since    2014-10-16 13:01
+*@attention
+* 
+*/
+GPublic void os_sleep(Count32_t msec)
+{
+    Sleep((DWORD)msec);
+}
+
 #elif defined(LINUX) || defined(SOLARIS)
 
 #include <unistd.h>
@@ -482,6 +498,22 @@ GPublic Int32_t os_mkdir(String_t path)
     os_sprintf(command, "mkdir -p %s", path);
     ret = system(command);
     return ret;
+}
+
+/*!
+*@brief        当前线程进入睡眠期
+*@author       zhaohm3
+*@param[in]    msec     睡眠的毫秒数
+*@retval
+*@note
+* 
+*@since    2014-10-16 13:01
+*@attention
+* 
+*/
+GPublic void os_sleep(Count32_t msec)
+{
+    usleep(1000 * msec);
 }
 
 #else

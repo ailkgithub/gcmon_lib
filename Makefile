@@ -49,9 +49,10 @@ CC = gcc
 ifeq ($(CC), gcc)
     _PIC = -fpic
     _MODE = -shared
+	_LIBS = -lpthread
 endif
 
-CFLAGS = $(_PIC) -I$(INC_DIR) -I$(INC_DIR)/hotspot/linux -I$(SRC_DIR)
+CFLAGS = $(_PIC) $(_LIBS) -I$(INC_DIR) -I$(INC_DIR)/hotspot/linux -I$(SRC_DIR)
 
 ifeq ($(OS), Linux)
     CFLAGS += -DLINUX
@@ -74,15 +75,16 @@ ifeq ($(BIT), 32)
     CFLAGS += -m32
 endif
 
-OBJS = $(patsubst %.c,%.o,$(wildcard gcmon/src/args/*.c))    \
+OBJS = $(patsubst %.c,%.o,$(wildcard gcmon/src/ana/*.c))     \
+       $(patsubst %.c,%.o,$(wildcard gcmon/src/args/*.c))    \
+       $(patsubst %.c,%.o,$(wildcard gcmon/src/buff/*.c))    \
+       $(patsubst %.c,%.o,$(wildcard gcmon/src/file/*.c))    \
        $(patsubst %.c,%.o,$(wildcard gcmon/src/gcmon/*.c))   \
        $(patsubst %.c,%.o,$(wildcard gcmon/src/list/*.c))    \
        $(patsubst %.c,%.o,$(wildcard gcmon/src/os/*.c))      \
        $(patsubst %.c,%.o,$(wildcard gcmon/src/perf/*.c))    \
        $(patsubst %.c,%.o,$(wildcard gcmon/src/rbtree/*.c))  \
        $(patsubst %.c,%.o,$(wildcard gcmon/src/sample/*.c))  \
-       $(patsubst %.c,%.o,$(wildcard gcmon/src/ana/*.c))     \
-       $(patsubst %.c,%.o,$(wildcard gcmon/src/file/*.c))    \
        $(patsubst %.c,%.o,$(wildcard gcmon/src/share/*.c))   
 
 TARGET_DIR = $(OUT_DIR)/$(OS)$(BIT)/$(TYPE)

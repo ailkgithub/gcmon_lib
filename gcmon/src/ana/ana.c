@@ -221,6 +221,7 @@ ERROR:
 *@brief        对OOM的Java Heap Space异常进行诊断
 *@author       zhaohm3
 *@param[in]    pPdiTree
+*@param[in]    sdwOOMType
 *@retval
 *@note
 * 
@@ -228,7 +229,7 @@ ERROR:
 *@attention
 * 
 */
-GPublic void ana_OOM_Java_heap_space(RBTreeP_t pPdiTree)
+GPrivate void ana_OOM_Java_heap_space(RBTreeP_t pPdiTree, Int32_t sdwOOMType)
 {
     MemAnaInfo_t sMemInfo = { 0 };
     Double_t dfHeapUsed = 0;
@@ -248,7 +249,7 @@ GPublic void ana_OOM_Java_heap_space(RBTreeP_t pPdiTree)
     mai_print_verbose(pAnaFile, &sMemInfo);
 
     os_fprintf(pAnaFile, "\n\n6.JVM OOM Message Information: \n\n");
-    os_fprintf(pAnaFile, "java.lang.OutOfMemoryError: Java heap space\n");
+    os_fprintf(pAnaFile, "java.lang.OutOfMemoryError: %s\n", gcmon_get_oom_desc(sdwOOMType));
 
     os_fprintf(pAnaFile, "\n\n7.JVM OOM Cause Information: \n\n");
 
@@ -350,6 +351,15 @@ GPublic void ana_OOM_Java_heap_space(RBTreeP_t pPdiTree)
         }
     }
 
+    if (GOOM_PERM_SPACE == sdwOOMType)
+    {
+        os_fprintf(pAnaFile, "And PermSize is "FMTF"KB, "
+            "current used "FMTF"KB, "
+            "and "FMTF"KB left.\n"
+            "Please set a more proper value to -XX:PermSize or -XX:MaxPermSize.\n",
+            s_pc(), s_pu(), s_pf());
+    }
+
 ERROR:
     mai_release_info(&sMemInfo);
     return;
@@ -374,7 +384,9 @@ GPublic void ana_OOM(RBTreeP_t pPdiTree, Int32_t sdwOOMType)
     switch (sdwOOMType)
     {
     case GOOM_HEAP_SPACE:
-        ana_OOM_Java_heap_space(pPdiTree);
+    case GOOM_OVERHEAD_LIMIT:
+    case GOOM_PERM_SPACE:
+        ana_OOM_Java_heap_space(pPdiTree, sdwOOMType);
         break;
     default:
         break;

@@ -31,6 +31,9 @@
     <Filter Include="file">
       <UniqueIdentifier>{c331f99b-c007-43db-9214-13a1b30c34b2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="buff">
+      <UniqueIdentifier>{753b8b47-c2f2-4a1b-9104-a38e3462cdc0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gcmon\gcmon.c">
@@ -62,6 +65,15 @@
     </ClCompile>
     <ClCompile Include="src\file\file.c">
       <Filter>file</Filter>
+    </ClCompile>
+    <ClCompile Include="src\os\thread.c">
+      <Filter>os</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sample\sout.c">
+      <Filter>sample</Filter>
+    </ClCompile>
+    <ClCompile Include="src\buff\buff.c">
+      <Filter>buff</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -97,6 +109,12 @@
     </ClInclude>
     <ClInclude Include="include\share\type.h">
       <Filter>share</Filter>
+    </ClInclude>
+    <ClInclude Include="include\os\thread.h">
+      <Filter>os</Filter>
+    </ClInclude>
+    <ClInclude Include="include\buff\buff.h">
+      <Filter>buff</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

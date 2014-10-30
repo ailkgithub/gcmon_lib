@@ -9,6 +9,7 @@
 
 #include "gcmon/gcmon.h"
 #include "os/os.h"
+#include "os/thread.h"
 #include "sample/sample.h"
 #include "ana/ana.h"
 #include "args/args.h"
@@ -37,10 +38,10 @@ GPrivate String_t gaszExhaustMsg[] =
     [GOOM_DIRECT_BUFF] = "Direct buffer memory",
 
     /*!
-     * FileChannelImpl.c 内存映射文件数目达到上限
-     * (/proc/sys/vm/max_map_count),
-     * 或者创建内存映射文件时，内存或地址空间不足
-     */
+    * FileChannelImpl.c 内存映射文件数目达到上限
+    * (/proc/sys/vm/max_map_count),
+    * 或者创建内存映射文件时，内存或地址空间不足
+    */
     [GOOM_MAP_FAILED] = "Map failed"
 };
 
@@ -54,6 +55,9 @@ GPrivate jrawMonitorID gMonitorID = NULL;           //!< 管程变量，用于同步
 GPrivate Addr_t gPerfMemory = NULL;                 //!< 用于存放JVM性能计数器的共享内存区的地址
 GPrivate RBTreeP_t gpPerfTree = NULL;               //!< 通过pPerfMemory构建的性能树
 GPrivate Perf_Attach_t gfnPerf_Attach = NULL;       //!< jvm动态库中Perf_Attach接口的地址
+GPrivate OSThreadP_t gpThread = NULL;               //!< 用于定时采样的线程句柄
+GPrivate SouterP_t gpSouter = NULL;                 //!< 输出缓冲区
+GPrivate Bool32_t gbOOMEvent = FALSE;               //!< 是否发生了OOM
 
 GPrivate jvmtiError gcmon_init_jvmtienv();
 GPrivate void gcmon_clear_jvmtienv();
@@ -120,6 +124,43 @@ GPublic RBTreeP_t gcmon_get_perf_tree()
     return gpPerfTree;
 }
 
+GPublic SouterP_t gcmon_get_souter()
+{
+    return gpSouter;
+}
+
+GPrivate void gcmon_souter_new()
+{
+    FILE *pStatFile = file_get_fstat();
+
+    if (pStatFile != NULL && pStatFile != stdout)
+    {
+        gpSouter = so_new(5 * MB, 8 * KB);
+    }
+}
+
+GPrivate void gcmon_souter_flush()
+{
+    if (gpSouter != NULL)
+    {
+        so_write(gpSouter, file_get_fstat());
+    }
+}
+
+GPrivate void gcmon_souter_free()
+{
+    so_free(gpSouter);
+}
+
+GPrivate void gcmon_thread_exit()
+{
+    if (gpThread != NULL)
+    {
+        os_thread_exit(gpThread);
+        gpThread = NULL;
+    }
+}
+
 /*!
 *@brief        多线程环境，进入临界区
 *@author       zhaohm3
@@ -177,6 +218,21 @@ GPrivate Int32_t gcmon_get_oom_type(const char* szDescription)
     return 0;
 }
 
+/*!
+*@brief        获取OOM的描述
+*@author       zhaohm3
+*@param[in]    szDescription
+*@retval
+*@note
+*
+*@since    2014-9-23 15:56
+*@attention
+*
+*/
+GPublic String_t gcmon_get_oom_desc(Int32_t sdwOOMType)
+{
+    return gaszExhaustMsg[sdwOOMType];
+}
 
 /*!
 *@brief        VMInit接口回调函数
@@ -394,7 +450,10 @@ GPrivate void JNICALL JVMResourceExhausted(jvmtiEnv *jvmti_env,
     const char* description)
 {
     GCMON_PRINT_FUNC();
+    gcmon_thread_exit();
     ana_OOM(gcmon_get_perf_tree(), gcmon_get_oom_type(description));
+    gcmon_souter_flush();
+    gbOOMEvent = TRUE;
 }
 
 /*!
@@ -415,15 +474,16 @@ GPrivate void JNICALL JVMGarbageCollectionStart(jvmtiEnv *jvmti_env)
     if (NULL == gpPerfTree)
     {
         //! 通过gPerfMemory构建性能树
-        GASSERT(NULL == gpPerfTree);
+        GASSERT(gPerfMemory != NULL);
         gcmon_init_perf_tree();
 
         //! 性能计数器红黑树构建好了后，随机初始化性能采样项
         GASSERT(gpPerfTree != NULL);
         sample_init(gpPerfTree);
-    }
 
-    sample_doit("Start  GC ");
+        gpThread = os_thread_create((Int32_t (JNICALL *)(void *))sample_tdoit, (void *)"OSThread  ");
+        os_thread_start(gpThread);
+    }
 }
 
 /*!
@@ -440,7 +500,6 @@ GPrivate void JNICALL JVMGarbageCollectionStart(jvmtiEnv *jvmti_env)
 GPrivate void JNICALL JVMGarbageCollectionFinish(jvmtiEnv *jvmti_env)
 {
     GCMON_PRINT_FUNC();
-    sample_doit("Finish GC ");
 }
 
 /*!
@@ -515,13 +574,7 @@ GPrivate void JVMZeroCallbacks()
 GPrivate void JVMInitCallbacks()
 {
     JVMZeroCallbacks();
-    /*
-    gCallbacks.VMInit = JVMInitVM;
-    gCallbacks.VMStart = JVMStartVM;
-    gCallbacks.Exception = JVMException;
-    gCallbacks.ExceptionCatch = JVMExceptionCatch;
-    gCallbacks.MethodEntry = JVMMethodEntry;
-    */
+
     gCallbacks.NativeMethodBind = JVMNativeMethodBind;
     gCallbacks.ResourceExhausted = JVMResourceExhausted;
     gCallbacks.GarbageCollectionStart = JVMGarbageCollectionStart;
@@ -693,7 +746,7 @@ JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *jvm, char *options, void *reserved)
 
     args_init_agentargs(options);
     file_open_all();
-
+    gcmon_souter_new();
     return JNI_OK;
 }
 
@@ -712,7 +765,16 @@ JNIEXPORT void JNICALL Agent_OnUnload(JavaVM *vm)
 {
     GCMON_PRINT_FUNC();
     JVMClearJvmtiEnv();
+    gcmon_thread_exit();
     rbtree_free(gpPerfTree);
+    gcmon_souter_free();
     file_close_all();
+
+    if (!gbOOMEvent)
+    {
+        file_remove(file_get_fsname());
+        file_remove(file_get_frname());
+    }
+
     args_free_agentargs();
 }

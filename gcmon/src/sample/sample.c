@@ -9,8 +9,7 @@
 
 #include "sample/sample.h"
 #include "perf/perf.h"
-#include "os/os.h"
-#include "file/file.h"
+
 
 //! 性能采样项结构体声明
 typedef struct SampleItem SampleItem_t, *SampleItemP_t;
@@ -306,206 +305,15 @@ GPublic Double_t s_pgc()
 
 GPublic Double_t s_ygctp()
 {
-    return (s_ygc() > 0) ? (Double_t)((1.000 - ((s_gct() - s_ygct()) / s_gct())) * 100.000) : 0.000;
+    return (s_gct() > 0) ? (Double_t)((1.000 - ((s_gct() - s_ygct()) / s_gct())) * 100.000) : 0.000;
 }
 
 GPublic Double_t s_fgctp()
 {
-    return (s_fgc() > 0) ? (Double_t)((1.000 - ((s_gct() - s_fgct()) / s_gct())) * 100.000) : 0.000;
+    return (s_gct() > 0) ? (Double_t)((1.000 - ((s_gct() - s_fgct()) / s_gct())) * 100.000) : 0.000;
 }
 
 GPublic Double_t s_gctp()
 {
     return (Double_t)((1.000 - ((s_timstamp() - s_gct()) / s_timstamp())) * 100.000);
-}
-
-#define S_FD 0       //!< Double_t
-#define S_FL 1       //!< jlong
-#define S_FS 2       //!< separator
-
-GPrivate struct
-{
-    String_t szHeader;
-    Int32_t sdwType;
-    union
-    {
-        Double_t(*pfnDouble)();
-        jlong(*pfnJlong)();
-    };
-} gaSout[]=
-{
-    { "Time(sec)", S_FD, s_timstamp },
-
-    { "Generation Space(KB)", S_FS, NULL },
-
-    { "S0C", S_FD, s_s0c },
-    { "S1C", S_FD, s_s1c },
-    { "EC", S_FD, s_ec },
-    { "OC", S_FD, s_oc },
-    { "PC", S_FD, s_pc },
-
-    { "Generation Space Usage(KB)", S_FS, NULL },
-
-    { "S0U", S_FD, s_s0u },
-    { "S0F", S_FD, s_s0f },
-    { "S1U", S_FD, s_s1u },
-    { "S1F", S_FD, s_s1f },
-    { "EU", S_FD, s_eu },
-    { "EF", S_FD, s_ef },
-    { "OU", S_FD, s_ou },
-    { "OF", S_FD, s_of },
-    { "PU", S_FD, s_pu },
-    { "PF", S_FD, s_pf },
-
-    { "Generation Space Usage(%)", S_FS, NULL },
-
-    { "S0P", S_FD, s_s0p },
-    { "S1P", S_FD, s_s1p },
-    { "EP", S_FD, s_ep },
-    { "OP", S_FD, s_op },
-    { "PP", S_FD, s_pp },
-
-    { "Generation Space(KB)", S_FS, NULL },
-
-    { "NGCMIN", S_FD, s_ngcmn },
-    { "NGCMAX", S_FD, s_ngcmx },
-    { "NGC", S_FD, s_ngc },
-    { "OGCMIN", S_FD, s_ogcmn },
-    { "OGCMAX", S_FD, s_ogcmx },
-    { "OGC", S_FD, s_ogc },
-    { "PGCMIN", S_FD, s_pgcmn },
-    { "PGCMAX", S_FD, s_pgcmx },
-    { "PGC", S_FD, s_pgc },
-
-    { "GC Information", S_FS, NULL },
-
-    { "YGC", S_FL, (Double_t(*)())s_ygc },
-    { "YGCT", S_FD, s_ygct },
-    { "AYGCT", S_FD, s_aygct },
-    /*{ "CYGCT", S_FD, s_cygct },*/
-    { "YGCTP", S_FD, s_ygctp },
-
-    { "FGC", S_FL, (Double_t(*)())s_fgc },
-    { "FGCT", S_FD, s_fgct },
-    { "AFGCT", S_FD, s_afgct },
-    /*{ "CFGCT", S_FD, s_cfgct },*/
-    { "FGCTP", S_FD, s_fgctp },
-    { "GCT", S_FD, s_gct },
-    { "GCTP", S_FD, s_gctp },
-};
-
-/*!
-*@brief        将gaSout的所有项输出到一行
-*@author       zhaohm3
-*@param[in]    pFile
-*@param[in]    szContext
-*@retval
-*@note
-* 
-*@since    2014-9-23 17:52
-*@attention
-* 
-*/
-GPublic void s_out_row(FILE *pFile, String_t szContext)
-{
-    Int32_t sdwLen = ARRAY_SIZE(gaSout);
-    Int32_t i = 0;
-
-    if (NULL == pFile)
-    {
-        pFile = stdout;
-    }
-
-    if (szContext != NULL)
-    {
-        os_fprintf(pFile, szContext);
-    }
-
-    for (i = 0; i < sdwLen; i++)
-    {
-        switch (gaSout[i].sdwType)
-        {
-        case S_FD:
-            os_fprintf(pFile, "%s: "FMTF"\t", gaSout[i].szHeader, gaSout[i].pfnDouble());
-            break;
-        case S_FL:
-            os_fprintf(pFile, "%s: "FMTL"\t", gaSout[i].szHeader, gaSout[i].pfnJlong());
-            break;
-        case S_FS:
-            os_fprintf(pFile, " | \t");
-            break;
-        default:
-            break;
-        }
-    }
-
-    os_fprintf(pFile, "\n");
-}
-
-
-/*!
-*@brief        将gaSout的所有项输出到一列
-*@author       zhaohm3
-*@param[in]    pFile
-*@param[in]    szContext
-*@retval
-*@note
-* 
-*@since    2014-9-23 17:54
-*@attention
-* 
-*/
-GPublic void s_out_line(FILE *pFile, String_t szContext)
-{
-    Int32_t sdwLen = ARRAY_SIZE(gaSout);
-    Int32_t i = 0;
-
-    if (NULL == pFile)
-    {
-        pFile = stdout;
-    }
-
-    if (szContext != NULL)
-    {
-        os_fprintf(pFile, "%s\n", szContext);
-    }
-
-    for (i = 0; i < sdwLen; i++)
-    {
-        switch (gaSout[i].sdwType)
-        {
-        case S_FD:
-            os_fprintf(pFile, "%s: "FMTF"\n", gaSout[i].szHeader, gaSout[i].pfnDouble());
-            break;
-        case S_FL:
-            os_fprintf(pFile, "%s: "FMTL"\n", gaSout[i].szHeader, gaSout[i].pfnJlong());
-            break;
-        case S_FS:
-            os_fprintf(pFile, "\n---> %s <---\n", gaSout[i].szHeader);
-            break;
-        default:
-            break;
-        }
-    }
-}
-
-/*!
-*@brief        对外接口，采样输出
-*@author       zhaohm3
-*@param[in]    szContext
-*@retval
-*@note
-* 
-*@since    2014-9-22 15:35
-*@attention
-* 
-*/
-GPublic void sample_doit(String_t szContext)
-{
-    FILE *pStatFile = file_get_fstat();
-
-    if (pStatFile != NULL)
-    {
-        s_out_row(pStatFile, szContext);
-    }
 }

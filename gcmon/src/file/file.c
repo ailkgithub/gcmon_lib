@@ -15,10 +15,15 @@ GPrivate FILE *gpDebugFile = NULL;          //!< ¼ÇÂ¼µ÷ÊÔÐÅÏ¢£¬½öÔÚDEBUGÄ£Ê½ÏÂÓÐ
 GPrivate FILE *gpResultFile = NULL;         //!< ´æ·ÅgcmonÕï¶Ï½á¹ûµÄÎÄ¼þ£¬ÓÉoutnameÑ¡ÏîÖ¸¶¨
 GPrivate FILE *gpStatFile = NULL;           //!< ´æ·ÅjstatÊý¾ÝµÄÎÄ¼þ£¬ÓÉoutnameºÍoutstatµÄÖµ¹²Í¬¾ö¶¨
 
+GPrivate Char_t gszDFileName[256] = { 0 };  //!< ¼ÇÂ¼µ÷ÊÔÐÅÏ¢ÎÄ¼þµÄÎÄ¼þÃû£¬½öÔÚDEBUGÄ£Ê½ÏÂÓÐÐ§
+GPrivate Char_t gszRFileName[256] = { 0 };  //!< ´æ·ÅgcmonÕï¶Ï½á¹ûÎÄ¼þµÄÎÄ¼þÃû£¬ÓÉoutnameÑ¡ÏîÖ¸¶¨
+GPrivate Char_t gszSFileName[256] = { 0 };  //!< ´æ·ÅjstatÊý¾ÝÎÄ¼þµÄÎÄÃ÷Ãû£¬ÓÉoutnameºÍoutstatµÄÖµ¹²Í¬¾ö¶¨
+
 /*!
 *@brief        Í¨¹ýoutpath¡¢outnameºÍÌá¹©µÄ¹¹Ôìºó×ºÃû³Æ´´½¨ÎÄ¼þ
 *@author       zhaohm3
 *@param[in]    szPostfix    ÎÄ¼þºó×ºÃû³Æ
+*@param[out]   szFileName   ÎÄ¼þÃû£¬ÓÃÓÚÊä³ö
 *@retval       ´´½¨$(outpath)/$(outname)_pid_$(pid).$(szPostfix)ÎÄ¼þ
 *@note
 * 
@@ -26,10 +31,9 @@ GPrivate FILE *gpStatFile = NULL;           //!< ´æ·ÅjstatÊý¾ÝµÄÎÄ¼þ£¬ÓÉoutnameº
 *@attention
 * 
 */
-GPrivate FILE* file_open_fpostfix(String_t szPostfix)
+GPrivate FILE* file_open_fpostfix(String_t szPostfix, String_t szFileName)
 {
     FILE *pFile = NULL;
-    Char_t szFileName[256] = { 0 };
     String_t szOutpath = agentargs_get_outpath();
     String_t szOutname = agentargs_get_outname();
 
@@ -41,6 +45,12 @@ GPrivate FILE* file_open_fpostfix(String_t szPostfix)
         (szPostfix != NULL) ? szPostfix : "unknown");
 
     pFile = os_fopen(szFileName, "w+");
+
+    if (NULL == pFile)
+    {
+        szFileName[0] = '\0';
+    }
+
     return pFile;
 }
 
@@ -57,7 +67,7 @@ GPrivate FILE* file_open_fpostfix(String_t szPostfix)
 GPublic void file_open_fdebug()
 {
 #ifdef DEBUG
-    gpDebugFile = file_open_fpostfix("debug");
+    gpDebugFile = file_open_fpostfix("debug", gszDFileName);
 #endif
 }
 
@@ -71,9 +81,9 @@ GPublic void file_open_fdebug()
 *@attention
 * 
 */
-GPrivate void file_open_fresult()
+GPublic void file_open_fresult()
 {
-    gpResultFile = file_open_fpostfix("result");
+    gpResultFile = file_open_fpostfix("result", gszRFileName);
 }
 
 /*!
@@ -86,7 +96,7 @@ GPrivate void file_open_fresult()
 *@attention
 * 
 */
-GPrivate void file_open_fstat()
+GPublic void file_open_fstat()
 {
     String_t szOutstat = agentargs_get_outstat();
 
@@ -98,7 +108,7 @@ GPrivate void file_open_fstat()
         }
         else if (0 == os_strcmp(szOutstat, "file"))
         {
-            gpStatFile = file_open_fpostfix("stat");
+            gpStatFile = file_open_fpostfix("stat", gszSFileName);
         }
     }
 }
@@ -147,7 +157,7 @@ GPublic void file_close_fdebug()
 *@attention
 * 
 */
-GPrivate void file_close_fresult()
+GPublic void file_close_fresult()
 {
     os_fflush(gpResultFile);
     os_fclose(gpResultFile);
@@ -164,7 +174,7 @@ GPrivate void file_close_fresult()
 *@attention
 * 
 */
-GPrivate void file_close_fstat()
+GPublic void file_close_fstat()
 {
     os_fflush(gpStatFile);
     os_fclose(gpStatFile);
@@ -231,4 +241,48 @@ GPublic FILE* file_get_fresult()
 GPublic FILE* file_get_fstat()
 {
     return gpStatFile;
+}
+
+GPublic String_t file_get_fdname()
+{
+    String_t szFileName = NULL;
+
+    if (gszDFileName[0] != '\0')
+    {
+        szFileName = gszDFileName;
+    }
+
+    return szFileName;
+}
+
+GPublic String_t file_get_frname()
+{
+    String_t szFileName = NULL;
+
+    if (gszRFileName[0] != '\0')
+    {
+        szFileName = gszRFileName;
+    }
+
+    return szFileName;
+}
+
+GPublic String_t file_get_fsname()
+{
+    String_t szFileName = NULL;
+
+    if (gszSFileName[0] != '\0')
+    {
+        szFileName = gszSFileName;
+    }
+
+    return szFileName;
+}
+
+GPublic void file_remove(String_t szFileName)
+{
+    if (szFileName != NULL)
+    {
+        os_unlink(szFileName);
+    }
 }
