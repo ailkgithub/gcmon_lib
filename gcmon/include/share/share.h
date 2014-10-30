@@ -104,4 +104,10 @@ do                                                          \
 #define BYTE2GB(b) ((b)/GB)
 #define BYTE2TB(b) ((b)/TB)
 
+#ifdef WIN32
+#pragma warning (disable:4996)
+#pragma warning (disable:4307)
+#pragma warning (disable:4244)
+#endif
+
 #endif

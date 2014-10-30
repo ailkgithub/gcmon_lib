@@ -120,9 +120,9 @@ GPublic Bool32_t os_get_process_memory_info(ProccessMemoryInfoP_t pMemoryInfo)
 *@attention
 * 
 */
-GPublic Int_t os_getpid()
+GPublic Int32_t os_getpid()
 {
-    return (Int_t)_getpid();
+    return _getpid();
 }
 
 /*!
@@ -158,7 +158,7 @@ GPublic FILE *os_fopen(String_t filename, String_t mode)
 *@attention
 * 
 */
-GPublic Int_t os_open(String_t path, Int_t oflag, Int_t pmode)
+GPublic Int32_t os_open(String_t path, Int32_t oflag, Int32_t pmode)
 {
     return _open(path, oflag, pmode);
 }
@@ -174,7 +174,7 @@ GPublic Int_t os_open(String_t path, Int_t oflag, Int_t pmode)
 *@attention
 * 
 */
-GPublic Int_t os_close(Int_t fd)
+GPublic Int32_t os_close(Int32_t fd)
 {
     return _close(fd);
 }
@@ -192,7 +192,7 @@ GPublic Int_t os_close(Int_t fd)
 *@attention
 * 
 */
-GPublic Int_t os_read(Int_t fd, Addr_t buffer, Count_t count)
+GPublic Int32_t os_read(Int32_t fd, Addr_t buffer, Count32_t count)
 {
     return _read(fd, buffer, count);
 }
@@ -210,7 +210,7 @@ GPublic Int_t os_read(Int_t fd, Addr_t buffer, Count_t count)
 *@attention
 * 
 */
-GPublic Int_t os_access(String_t path, Int_t mode)
+GPublic Int32_t os_access(String_t path, Int32_t mode)
 {
     return _access(path, mode);
 }
@@ -226,7 +226,7 @@ GPublic Int_t os_access(String_t path, Int_t mode)
 *@attention
 * 
 */
-GPublic Int_t os_unlink(String_t filename)
+GPublic Int32_t os_unlink(String_t filename)
 {
     return _unlink(filename);
 }
@@ -242,13 +242,29 @@ GPublic Int_t os_unlink(String_t filename)
 *@attention
 * 
 */
-GPublic Int_t os_mkdir(String_t path)
+GPublic Int32_t os_mkdir(String_t path)
 {
-    Int_t ret = 0;
+    Int32_t ret = 0;
     Char_t command[256] = { 0 };
     os_sprintf(command, "mkdir %s", path);
     ret = system(command);
     return ret;
+}
+
+/*!
+*@brief        当前线程进入睡眠期
+*@author       zhaohm3
+*@param[in]    msec     睡眠的毫秒数
+*@retval
+*@note
+* 
+*@since    2014-10-16 13:01
+*@attention
+* 
+*/
+GPublic void os_sleep(Count32_t msec)
+{
+    Sleep((DWORD)msec);
 }
 
 #elif defined(LINUX) || defined(SOLARIS)
@@ -352,9 +368,9 @@ OSERROR:
 *@attention
 * 
 */
-GPublic Int_t os_getpid()
+GPublic Int32_t os_getpid()
 {
-    return (Int_t)getpid();
+    return getpid();
 }
 
 /*!
@@ -387,7 +403,7 @@ GPublic FILE *os_fopen(String_t filename, String_t mode)
 *@attention
 *
 */
-GPublic Int_t os_open(String_t path, Int_t oflag, Int_t pmode)
+GPublic Int32_t os_open(String_t path, Int32_t oflag, Int32_t pmode)
 {
     return open(path, oflag, pmode);
 }
@@ -403,7 +419,7 @@ GPublic Int_t os_open(String_t path, Int_t oflag, Int_t pmode)
 *@attention
 *
 */
-GPublic Int_t os_close(Int_t fd)
+GPublic Int32_t os_close(Int32_t fd)
 {
     return close(fd);
 }
@@ -421,7 +437,7 @@ GPublic Int_t os_close(Int_t fd)
 *@attention
 *
 */
-GPublic Int_t os_read(Int_t fd, Addr_t buffer, Count_t count)
+GPublic Int32_t os_read(Int32_t fd, Addr_t buffer, Count32_t count)
 {
     return read(fd, buffer, count);
 }
@@ -439,7 +455,7 @@ GPublic Int_t os_read(Int_t fd, Addr_t buffer, Count_t count)
 *@attention
 *
 */
-GPublic Int_t os_access(String_t path, Int_t mode)
+GPublic Int32_t os_access(String_t path, Int32_t mode)
 {
     return access(path, mode);
 }
@@ -455,9 +471,9 @@ GPublic Int_t os_access(String_t path, Int_t mode)
 *@attention
 *
 */
-GPublic Int_t os_unlink(String_t filename)
+GPublic Int32_t os_unlink(String_t filename)
 {
-    Int_t ret = 0;
+    Int32_t ret = 0;
     Char_t command[256] = { 0 };
     os_sprintf(command, "rm -rf %s", filename);
     ret = system(command);
@@ -475,13 +491,29 @@ GPublic Int_t os_unlink(String_t filename)
 *@attention
 *
 */
-GPublic Int_t os_mkdir(String_t path)
+GPublic Int32_t os_mkdir(String_t path)
 {
-    Int_t ret = 0;
+    Int32_t ret = 0;
     Char_t command[256] = { 0 };
     os_sprintf(command, "mkdir -p %s", path);
     ret = system(command);
     return ret;
+}
+
+/*!
+*@brief        当前线程进入睡眠期
+*@author       zhaohm3
+*@param[in]    msec     睡眠的毫秒数
+*@retval
+*@note
+* 
+*@since    2014-10-16 13:01
+*@attention
+* 
+*/
+GPublic void os_sleep(Count32_t msec)
+{
+    usleep(1000 * msec);
 }
 
 #else
