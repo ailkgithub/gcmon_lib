@@ -12,14 +12,24 @@
 
 #include "share/share.h"
 
-GPublic void file_open_all();
-GPublic void file_close_all();
-
 GPublic void file_open_fdebug();
+GPublic void file_open_fresult();
+GPublic void file_open_fstat();
+GPublic void file_open_all();
+
 GPublic void file_close_fdebug();
+GPublic void file_close_fresult();
+GPublic void file_close_fstat();
+GPublic void file_close_all();
 
 GPublic FILE* file_get_fdebug();
 GPublic FILE* file_get_fresult();
 GPublic FILE* file_get_fstat();
+
+GPublic String_t file_get_fdname();
+GPublic String_t file_get_frname();
+GPublic String_t file_get_fsname();
+
+GPublic void file_remove(String_t szFileName);
 
 #endif

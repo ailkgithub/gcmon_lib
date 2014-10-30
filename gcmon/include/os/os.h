@@ -43,12 +43,17 @@ GPublic Int32_t os_access(String_t path, Int32_t mode);
 GPublic Int32_t os_unlink(String_t filename);
 GPublic Int32_t os_mkdir(String_t path);
 
+GPublic void os_sleep(Count32_t msec);
+
 #define os_printf   printf
 #define os_vprintf  vprintf
+
 #define os_fprintf  fprintf
 #define os_vfprintf vfprintf
 
 #define os_sprintf  sprintf
+#define os_vsprintf vsprintf
+
 #define os_strlen   strlen
 #define os_strstr   strstr
 #define os_strcpy   strcpy

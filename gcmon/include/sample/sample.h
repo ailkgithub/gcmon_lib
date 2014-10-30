@@ -13,6 +13,8 @@
 #include "share/share.h"
 #include "rbtree/rbtree.h"
 
+typedef struct Souter Souter_t, *SouterP_t;
+
 GPublic Double_t s_ticks();
 GPublic Double_t s_frequency();
 GPublic Double_t s_timstamp();
@@ -55,10 +57,19 @@ GPublic Double_t s_pgc();
 GPublic Double_t s_ygctp();
 GPublic Double_t s_fgctp();
 GPublic Double_t s_gctp();
+
+GPublic SouterP_t so_new(Uint32_t size, Uint32_t reserved);
+GPublic void so_free(SouterP_t pOuter);
+GPublic void so_switch(SouterP_t pOuter);
+GPublic Int32_t so_print(SouterP_t pOuter, String_t fmt, ...);
+GPublic void so_write(SouterP_t pOuter, FILE *file);
+
 GPublic void s_out_row(FILE *pFile, String_t szContext);
 GPublic void s_out_line(FILE *pFile, String_t szContext);
 
 GPublic void sample_init(RBTreeP_t pTree);
 GPublic void sample_doit(String_t szContext);
+GPublic Int32_t JNICALL sample_tdoit(String_t szContext);
+
 
 #endif
