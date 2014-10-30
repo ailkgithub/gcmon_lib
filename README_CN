@@ -1,0 +1,139 @@
+README - GCMON - 2014-09-23
+---------------------------------
+
+
+简介
+
+    GCMON是一个agent工具，它可以收集JVM的运行时信息，然后，根据传入的命令行参数来决定这些信息的输出情况。
+    
+    当JVM发生OOM的时候，GCMON会生成一个报告文件，记录系统的内存以及JVM各个代内存的使用情况，同时，会根据这些信息，给出一条简单的诊断建议。
+
+
+下载
+    
+    git clone https://github.com/zhaohm3/gcmon_lib.git
+
+
+编译
+
+    在Windows上编译
+    
+        0.安装Visual Studio 2013。
+        
+        1.使用Visual Studio 2013打开文件gcmon.sln。
+        
+        2.设定编译选项(Win32 or X64, Debug or Release)。
+        
+        3.右键gcmon ->  Rebuild 对gcmon进行编译。
+        
+        4.编译出的目标文件gcmon.dll位于output\gcmon\dll\$(Platform)\$(Configuration)\目录中。
+        
+        例如，如果选择x64和Release编译选项，则Release版本的目标文件gcmon.dll会被编译到output\gcmon\dll\x64\Release\目录中。
+
+    Linux 和 Solaris 上的编译
+
+        0.打开Makefie文件，设置编译选项：OS、TYPE、BIT、OUT_DIR。
+
+        1.执行命令 "make clean && make all"。
+        
+        例如，如果设置OS = Linux, TYPE = release, BIT = 64, OUT_DIR = output，然后执行命令"make clean && make all"，则release版本的目标文件libgcmon.so会被编译到output/Linux64/release/目录中。
+
+        也可不更改Makefile文件，通过命令行的方式传递编译选项。
+        
+        比如，如果执行命令"make clean && make all OS=Linux TYPE=debug BIT=64"进行编译，则debug版本的目标文件libgcmon.so会被编译到output/Linux64/debug/目录中。
+
+
+加载
+
+    GCMON是一个JVMTI库，所以，可以通过如下两种方式在JVM启动的时候进行加载：
+    
+        1> -agentlib:<agent-lib-name>=<options>
+        2> -agentpath:<path-to-agent>=<options>
+        
+    如果想用第一种方式进行加载，则必须将目标文件gcmon.dll或者libgcmon.so拷贝到java.dll或者libjaba.so所在的目录中，在Windows x64平台上，此目录为%JAVA_HOME%\jre\bin，在Linux x64平台上个，此目录为$(JAVA_HOME)/jre/lib/amd64，拷贝完成后，可以通过如下方式进行加载：
+
+    java -agentlib:gcmon=outpath=outdir,outname=filename,outstat=file ...
+
+    第二种方式需要指定gcmon.dll或者libgcmon.so的绝对路径，具体如下：
+
+    java -agentpath:D:\gcmon_lib\output\gcmon\dll\x64\Release\gcmon.dll=outpath=outdir,outname=filename,outstat=file ...
+    java -agentpath:/gcmon_lib/output/Linux64/libgcmon.so=outpath=outdir,outname=filename,outstat=file ...
+
+
+选项
+
+    可以为GCMON传递参数，指示GCMON的输出目录、输出文件名称、输出的目的地（stdout或者file），默认情况下，GCMON会将结果文件输出到当前目录中，并以"gcmon"为前缀，当前版本的GCMON所支持的选项有：
+
+    0.outpath
+
+        指定输出文件的目录，如果不指定，则使用当前目录。
+
+    1.outname
+
+        指定输出文件的名称前缀，默认为"gcmon"。
+        
+        例如，如果指定outname=myfile，对于进程号为6552的java进程，GCMON输出的结果文件为：myfile_pid_6552.result，统计信息文件为：myfile_pid_6552.stat，在调试模式下，输出的调试信息文件为：myfile_pid_6552.debug。
+
+    2.outstat
+
+        指定统计信息文件的输出目的地，目前仅仅支持"stdout"和"file"，其它值将被自动忽略。
+        
+        "stdout"表示在运行的过程中，将统计信息直接输出到标准输出流。
+        "file"表示，当发生OOM的时候，将统计信息输出到outpath目录的outname文件中。
+
+        如果此参数未被指定，或者指定为其它值，则不会输出任何统计信息。
+
+
+统计信息含义
+
+    统计信息所的输出大部分和jstat所输出的信息含义一样:
+
+    Time        Current run time (sec).
+
+    S0C         Current survivor 0 space capacity (KB).
+    S1C         Current survivor 1 space capacity (KB).
+    EC          Current eden space capacity (KB).
+    OC          Current old space capacity (KB).
+    PC          Current permanent space capacity (KB).
+
+    S0U         Current survivor 0 space used (KB).
+    S0F         Current survivor 0 space free (KB).
+    S1U         Current survivor 1 space used (KB).
+    S1F         Current survivor 1 space free (KB).
+    EU          Current eden space used (KB).
+    EF          Current eden space free (KB).
+    OU          Current old space used (KB).
+    OF          Current old space free (KB).
+    PU          Current permanent space used (KB).
+    PF          Current permanent space free (KB).
+
+    S0P         Percentage of current survivor 0 space used.
+    S1P         Percentage of current survivor 1 space used.
+    EP          Percentage of current eden space used.
+    OP          Percentage of current old space used.
+    PP          Percentage of permanent space used.
+
+    NGCMIN      Minimum new generation capacity (KB).
+    NGCMAX      Maximum new generation capacity (KB).
+    NGC         Current new generation capacity (KB).
+
+    OGCMIN      Minimum old generation capacity (KB).
+    OGCMAX      Maximum old generation capacity (KB).
+    OGC         Current old generation capacity (KB).
+
+    PGCMIN      Minimum permanent generation capacity (KB).
+    PGCMAX      Maximum permanent generation capacity (KB).
+    PGC         Current permanent generation capacity (KB).
+
+    YGC         Number of young generation GC events.
+    YGCT        Total young generation garbage collection time (sec).
+    AYGCT       Average time of each young generation garbage collection (sec).
+    YGCTP       Percentage of total young generation garbage collection time in total garbage collection time.
+
+    FGC         Number of full GC events.
+    FGCT        Total full garbage collection time.
+    AFGCT       Average time of each full garbage collection (sec).
+    FGCTP       Percentage of total full garbage collection time in total garbage collection time.
+    
+    GCT         Total garbage collection time.
+    GCTP        Percentage of total garbage collection time in total run time.
