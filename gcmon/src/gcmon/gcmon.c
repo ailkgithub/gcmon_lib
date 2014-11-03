@@ -450,10 +450,15 @@ GPrivate void JNICALL JVMResourceExhausted(jvmtiEnv *jvmti_env,
     const char* description)
 {
     GCMON_PRINT_FUNC();
+
     gcmon_thread_exit();
     ana_OOM(gcmon_get_perf_tree(), gcmon_get_oom_type(description));
     gcmon_souter_flush();
-    gbOOMEvent = TRUE;
+
+    if (gpPerfTree != NULL && gPerfMemory != NULL)
+    {
+        gbOOMEvent = TRUE;
+    }
 }
 
 /*!
@@ -471,10 +476,9 @@ GPrivate void JNICALL JVMGarbageCollectionStart(jvmtiEnv *jvmti_env)
 {
     GCMON_PRINT_FUNC();
 
-    if (NULL == gpPerfTree)
+    if (NULL == gpPerfTree && gPerfMemory != NULL)
     {
         //! 通过gPerfMemory构建性能树
-        GASSERT(gPerfMemory != NULL);
         gcmon_init_perf_tree();
 
         //! 性能计数器红黑树构建好了后，随机初始化性能采样项

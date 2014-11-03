@@ -64,7 +64,9 @@ GPrivate Double_t gdfJVMHeapFreeRatio = 0.95;
 */
 GPrivate void mai_gather_info(RBTreeP_t pPdiTree, MemAnaInfoP_t pMemInfo)
 {
+    GCMON_CHECK_NULL(pPdiTree, ERROR);
     GCMON_CHECK_NULL(pMemInfo, ERROR);
+
     os_get_physical_memory_info(&pMemInfo->sPhys);
     os_get_process_memory_info(&pMemInfo->sProc);
     pMemInfo->szJavaCmd = args_get_javacmd(pPdiTree);
@@ -237,6 +239,8 @@ GPrivate void ana_OOM_Java_heap_space(RBTreeP_t pPdiTree, Int32_t sdwOOMType)
     Double_t dfHeapSize = 0;
     Double_t dfMaxHeapSize = 0;
     FILE *pAnaFile = NULL;
+
+    GCMON_CHECK_NULL(pPdiTree, ERROR);
 
     dfHeapUsed = s_s0u() + s_s1u() + s_eu() + s_ou();
     dfHeapFree = s_s0f() + s_s1f() + s_ef() + s_of();
